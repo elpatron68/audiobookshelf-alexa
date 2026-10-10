@@ -37,6 +37,7 @@ jobs:
       - name: Validate JSON configuration & models
         run: |
           node -e "JSON.parse(require('fs').readFileSync('skill-package/skill.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('skill-package/account-linking.json'))"
           node -e "JSON.parse(require('fs').readFileSync('skill-package/interactionModels/custom/de-DE.json'))"
           node -e "JSON.parse(require('fs').readFileSync('skill-package/interactionModels/custom/en-US.json'))"
           node -e "JSON.parse(require('fs').readFileSync('ask-resources.json'))"
@@ -136,6 +137,11 @@ jobs:
 
           echo "Updating Skill manifest (skill.json)..."
           ask smapi update-skill-manifest -s "$SKILL_ID" -g development --manifest "file:skill-package/skill.json"
+
+          if [ -f "skill-package/account-linking.json" ]; then
+            echo "Updating Account Linking configuration (account-linking.json)..."
+            ask smapi update-account-linking-info -s "$SKILL_ID" -g development --account-linking-request "file:skill-package/account-linking.json"
+          fi
 
       - name: Wait for model build
         run: |

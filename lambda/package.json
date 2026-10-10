@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test test/playback.test.js test/absClient.test.js test/handler.test.js"
+    "test": "node --test test/playback.test.js test/absClient.test.js test/handler.test.js test/auth.test.js"
   },
   "dependencies": {
     "ask-sdk-core": "^2.14.0",

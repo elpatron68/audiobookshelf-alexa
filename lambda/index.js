@@ -1,7 +1,8 @@
 'use strict';
 
 const Alexa = require('ask-sdk-core');
-const { fromEnv } = require('./lib/absClient');
+const { AbsClient, fromEnv } = require('./lib/absClient');
+const { handleHttpRequest, decryptCredentials } = require('./lib/auth');
 const {
   locateTrack,
   bookOffsetForTrack,
@@ -26,13 +27,41 @@ function speakerOf(handlerInput) {
 
 function getClient(handlerInput) {
   try {
-    return fromEnv(process.env);
+    const reqEnv = handlerInput.requestEnvelope;
+    // 1. Check for linked account access token from Alexa
+    const token = reqEnv?.context?.System?.user?.accessToken
+      || reqEnv?.session?.user?.accessToken;
+    if (token) {
+      const creds = decryptCredentials(token);
+      if (creds && creds.baseUrl && creds.apiKey) {
+        return new AbsClient(creds.baseUrl, creds.apiKey);
+      }
+    }
+
+    // 2. Fallback to process.env for local development / legacy single-user
+    if (process.env.ABS_BASE_URL && process.env.ABS_API_KEY) {
+      return fromEnv(process.env);
+    }
+
+    // 3. User has not linked an account
+    handlerInput.__needsLink = true;
+    const speak = speakerOf(handlerInput);
+    handlerInput.__speech = speak('accountNotLinked');
+    return null;
   } catch (err) {
     console.error('Audiobookshelf client init failed:', err.message);
     const speak = speakerOf(handlerInput);
     handlerInput.__speech = speak('notConfigured');
     return null;
   }
+}
+
+function handleMissingClient(h) {
+  const rb = h.responseBuilder.speak(h.__speech);
+  if (h.__needsLink) {
+    rb.withLinkAccountCard();
+  }
+  return rb.getResponse();
 }
 
 async function getLibraries(client) {
@@ -379,6 +408,10 @@ function unitLabel(locale, unitSlotValue, n) {
 const LaunchRequestHandler = {
   canHandle(h) { return Alexa.getRequestType(h.requestEnvelope) === 'LaunchRequest'; },
   handle(h) {
+    const client = getClient(h);
+    if (!client && h.__needsLink) {
+      return handleMissingClient(h);
+    }
     const speak = speakerOf(h);
     return h.responseBuilder.speak(speak('welcome')).reprompt(speak('help')).getResponse();
   },
@@ -414,7 +447,7 @@ const ListLibrariesIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
     try {
       const libraries = await getLibraries(client);
       if (!libraries.length) return h.responseBuilder.speak(speak('noLibraries')).getResponse();
@@ -435,7 +468,7 @@ const RecentBooksIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
     try {
       const libs = await getLibraries(client);
       const titles = [];
@@ -465,7 +498,7 @@ const ListInProgressIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
     try {
       const me = await client.getMe();
       const inProg = (me.mediaProgress || [])
@@ -504,7 +537,7 @@ const PlayBookIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
 
     const query = Alexa.getSlotValue(h.requestEnvelope, 'bookTitle');
     if (!query) {
@@ -545,7 +578,7 @@ const PlayPodcastIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
 
     const query = Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle')
       || Alexa.getSlotValue(h.requestEnvelope, 'bookTitle');
@@ -578,7 +611,7 @@ const PlayEpisodeIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
 
     let podcastTitle = Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle');
     let episodeQuery = Alexa.getSlotValue(h.requestEnvelope, 'episodeQuery')
@@ -668,7 +701,7 @@ const ContinueListeningIntentHandler = {
       const state = decodeToken(ap.token);
       if (state) {
         const client = getClient(h);
-        if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+        if (!client) return handleMissingClient(h);
         try {
           const { directive } = await relaunchAtOffset(client, {
             ...state,
@@ -682,7 +715,7 @@ const ContinueListeningIntentHandler = {
     }
 
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
 
     const query = Alexa.getSlotValue(h.requestEnvelope, 'bookTitle')
       || Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle');
@@ -803,7 +836,7 @@ async function moveByEpisode(h, direction) {
   const current = currentPlaybackState(h);
   if (!current) return h.responseBuilder.speak(speak('notPlaying')).getResponse();
   const client = getClient(h);
-  if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+  if (!client) return handleMissingClient(h);
 
   try {
     const item = await client.getItem(current.itemId);
@@ -843,7 +876,7 @@ async function moveByChapter(h, direction) {
   const current = currentPlaybackState(h);
   if (!current) return h.responseBuilder.speak(speak('notPlaying')).getResponse();
   const client = getClient(h);
-  if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+  if (!client) return handleMissingClient(h);
   try {
     const item = await client.getItem(current.itemId);
     const chapters = (item.media && item.media.chapters) || [];
@@ -896,7 +929,7 @@ async function seekBy(h, sign) {
   const current = currentPlaybackState(h);
   if (!current) return h.responseBuilder.speak(speak('notPlaying')).getResponse();
   const client = getClient(h);
-  if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+  if (!client) return handleMissingClient(h);
 
   const nRaw = Alexa.getSlotValue(h.requestEnvelope, 'duration');
   const unit = Alexa.getSlotValue(h.requestEnvelope, 'unit');
@@ -935,7 +968,7 @@ const SetSleepTimerIntentHandler = {
     const current = currentPlaybackState(h);
     if (!current) return h.responseBuilder.speak(speak('notPlaying')).getResponse();
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
 
     const nRaw = Alexa.getSlotValue(h.requestEnvelope, 'duration');
     const unit = Alexa.getSlotValue(h.requestEnvelope, 'unit');
@@ -969,7 +1002,7 @@ const CancelSleepTimerIntentHandler = {
     if (!current) return h.responseBuilder.speak(speak('noSleepTimer')).getResponse();
     if (!current.sleepDeadline) return h.responseBuilder.speak(speak('noSleepTimer')).getResponse();
     const client = getClient(h);
-    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+    if (!client) return handleMissingClient(h);
     try {
       const { directive } = await relaunchAtOffset(client, current, current.bookOffset, { sleepDeadline: null });
       return h.responseBuilder.speak(speak('sleepTimerCancelled')).addDirective(directive).getResponse();
@@ -1042,7 +1075,7 @@ const AudioPlayerEventHandler = {
     if (!state) return h.responseBuilder.getResponse();
 
     let client = null;
-    try { client = fromEnv(process.env); } catch (_) { /* noop */ }
+    try { client = getClient(h); } catch (_) { /* noop */ }
 
     const offsetSec = (req.offsetInMilliseconds || 0) / 1000;
     const currentOffset = (state.trackStart || 0) + offsetSec;
@@ -1095,7 +1128,7 @@ const ErrorHandler = {
 // Skill entry point
 // ---------------------------------------------------------------------------
 
-exports.handler = Alexa.SkillBuilders.custom()
+const skillLambda = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LaunchRequestHandler,
     PlayPodcastIntentHandler,
@@ -1122,6 +1155,14 @@ exports.handler = Alexa.SkillBuilders.custom()
   )
   .addErrorHandlers(ErrorHandler)
   .lambda();
+
+exports.handler = async (event, context, callback) => {
+  // If invoked via Lambda Function URL / HTTP request (Account Linking portal)
+  if (event.rawPath || event.requestContext?.http || (event.httpMethod && !event.request)) {
+    return handleHttpRequest(event);
+  }
+  return skillLambda(event, context, callback);
+};
 
 // Exported for testing
 exports._internals = {

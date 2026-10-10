@@ -33,6 +33,23 @@
       "testingInstructions": "Personal-use skill.",
       "category": "STREAMING_SERVICE"
     },
+    "privacyAndCompliance": {
+      "locales": {
+        "de-DE": {
+          "privacyPolicyUrl": "https://gu53wcqfzqxqd2n7jdbaixikam0mcqcu.lambda-url.us-east-1.on.aws/privacy",
+          "termsOfUseUrl": "https://gu53wcqfzqxqd2n7jdbaixikam0mcqcu.lambda-url.us-east-1.on.aws/terms"
+        },
+        "en-US": {
+          "privacyPolicyUrl": "https://gu53wcqfzqxqd2n7jdbaixikam0mcqcu.lambda-url.us-east-1.on.aws/privacy",
+          "termsOfUseUrl": "https://gu53wcqfzqxqd2n7jdbaixikam0mcqcu.lambda-url.us-east-1.on.aws/terms"
+        }
+      },
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false
+    },
     "apis": {
       "custom": {
         "endpoint": {

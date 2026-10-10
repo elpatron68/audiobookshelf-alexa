@@ -169,6 +169,19 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[-] Failed to update manifest." -ForegroundColor Red
 }
 
+# 5b. Deploy Account Linking via SMAPI if present
+$AccountLinkingPath = Join-Path $SkillPackagePath "account-linking.json"
+if (Test-Path $AccountLinkingPath) {
+    Write-Host ""
+    Write-Host "[*] Uploading Account Linking configuration (account-linking.json)..." -ForegroundColor Cyan
+    & $askCmd smapi update-account-linking-info -s $SkillId -g development --account-linking-request "file:$AccountLinkingPath"
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[+] Account Linking successfully configured!" -ForegroundColor Green
+    } else {
+        Write-Warning "Failed to update Account Linking configuration."
+    }
+}
+
 # 6. Wait for model build status
 Write-Host ""
 Write-Host "[*] Waiting for interaction model build to finish..." -ForegroundColor Cyan
