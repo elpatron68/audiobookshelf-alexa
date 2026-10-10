@@ -395,6 +395,17 @@ const HelpIntentHandler = {
   },
 };
 
+const FallbackIntentHandler = {
+  canHandle(h) {
+    return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+      && Alexa.getIntentName(h.requestEnvelope) === 'AMAZON.FallbackIntent';
+  },
+  handle(h) {
+    const speak = speakerOf(h);
+    return h.responseBuilder.speak(speak('help')).reprompt(speak('help')).getResponse();
+  },
+};
+
 const ListLibrariesIntentHandler = {
   canHandle(h) {
     return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
@@ -1105,6 +1116,7 @@ exports.handler = Alexa.SkillBuilders.custom()
     PauseIntentHandler,
     PlaybackControllerHandler,
     HelpIntentHandler,
+    FallbackIntentHandler,
     AudioPlayerEventHandler,
     SessionEndedRequestHandler,
   )

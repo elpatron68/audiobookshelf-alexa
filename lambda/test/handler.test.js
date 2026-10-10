@@ -55,6 +55,18 @@ test('ListInProgressIntent reads in-progress titles', async () => {
   assert.match(speech(res), /The Hobbit/);
 });
 
+test('AMAZON.HelpIntent speaks help instructions', async () => {
+  const res = await invoke(handler, intent('AMAZON.HelpIntent'));
+  assert.match(speech(res), /Du kannst sagen/);
+  assert.equal(res.response.shouldEndSession, false);
+});
+
+test('AMAZON.FallbackIntent speaks help instructions instead of error', async () => {
+  const res = await invoke(handler, intent('AMAZON.FallbackIntent'));
+  assert.match(speech(res), /Du kannst sagen/);
+  assert.equal(res.response.shouldEndSession, false);
+});
+
 // ---------------------------------------------------------------------------
 // PlayBookIntent
 // ---------------------------------------------------------------------------

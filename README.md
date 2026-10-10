@@ -604,24 +604,24 @@ synchronisiert, sodass alles mit der Web-/Mobile-App in Sync bleibt.
 
 ## Aufrufname & Sprachbefehle
 
-Der Standard-**Aufrufname** ist **`Audiobookshelf`** (z. B. *„Alexa, öffne Audiobookshelf“*).
+Der Standard-**Aufrufname** ist **`Audiobook Shelf`** (z. B. *„Alexa, öffne Audiobook Shelf“* — englisch gesprochen, als zwei Wörter getrennt).
 
 ### Vollständige Befehlsübersicht:
 
 | Kategorie | Sprachbefehl | Beschreibung |
 |---|---|---|
-| **Skill starten** | *„Alexa, öffne Audiobookshelf“* | Startet den Skill und begrüßt dich. |
-| **Fortsetzen (Zuletzt gehört)** | *„Alexa, sage Audiobookshelf mache weiter“*<br>*„Alexa, frage Audiobookshelf weiterhören“*<br>*„Alexa, frage Audiobookshelf fortsetzen“* | Setzt den zuletzt gehörten Titel (egal ob Hörbuch oder Podcast) an der exakten Sekunde fort. |
-| **Gezielt fortsetzen** | *„Alexa, frage Audiobookshelf setze [Titel] fort“*<br>*„Alexa, frage Audiobookshelf höre [Titel] weiter“*<br>*„Alexa, frage Audiobookshelf mache mit [Titel] weiter“* | Setzt ein bestimmtes Hörbuch oder einen bestimmten Podcast fort. |
-| **Hörbuch abspielen** | *„Alexa, frage Audiobookshelf spiele [Titel]“*<br>*„Alexa, frage Audiobookshelf spiele das Hörbuch [Titel]“* | Startet das Hörbuch (oder setzt es fort, falls schon begonnen). |
-| **Podcast abspielen** | *„Alexa, frage Audiobookshelf spiele den Podcast [Titel]“*<br>*„Alexa, frage Audiobookshelf spiele Podcast [Titel]“* | Startet die neueste bzw. zuletzt begonnene Episode des Podcasts. |
-| **Gezielte Folge** | *„Alexa, frage Audiobookshelf spiele Folge [Nummer] von [Podcast]“*<br>*„Alexa, frage Audiobookshelf spiele die neueste Folge von [Podcast]“*<br>*„Alexa, frage Audiobookshelf spiele die erste Folge von [Podcast]“* | Spielt die gewünschte Folge ab (z. B. *„Folge 5 von Fest und Flauschig“*). |
-| **Folgen springen (Podcasts)** | *„Alexa, frage Audiobookshelf nächste Folge“*<br>*„Alexa, frage Audiobookshelf vorherige Folge“*<br>*„Alexa, nächste“* / *„Alexa, vorherige“* | Springt zur nächsten bzw. vorherigen chronologischen Podcast-Episode. |
-| **Kapitel springen (Hörbücher)** | *„Alexa, frage Audiobookshelf nächstes Kapitel“*<br>*„Alexa, frage Audiobookshelf vorheriges Kapitel“*<br>*„Alexa, weiter“* / *„Alexa, zurück“* | Springt im aktuellen Hörbuch ein Kapitel vor oder zurück. |
-| **Zeitsprung (Spulen)** | *„Alexa, frage Audiobookshelf springe [Dauer] zurück“*<br>*„Alexa, frage Audiobookshelf spule [Dauer] vor“* | Z. B. *„springe 30 Sekunden zurück“* oder *„spule 2 Minuten vor“*. |
-| **Sleep Timer** | *„Alexa, frage Audiobookshelf stelle den Sleep Timer auf [Dauer]“*<br>*„Alexa, frage Audiobookshelf schalte in [Dauer] aus“*<br>*„Alexa, frage Audiobookshelf Sleep Timer abbrechen“* | Stellt einen automatischen Einschlaf-Timer (z. B. *„auf 30 Minuten“*). |
-| **Was läuft gerade?** | *„Alexa, frage Audiobookshelf was höre ich gerade“*<br>*„Alexa, frage Audiobookshelf meine angefangenen Podcasts“*<br>*„Alexa, frage Audiobookshelf meine angefangenen Bücher“* | Listet die zuletzt begonnenen Hörbücher und Podcasts auf. |
-| **Neuheiten & Bibliotheken** | *„Alexa, frage Audiobookshelf was gibt es Neues“*<br>*„Alexa, frage Audiobookshelf liste meine Bibliotheken“* | Nennt neu hinzugefügte Medien oder deine Bibliotheksnamen. |
+| **Skill starten** | *„Alexa, öffne Audiobook Shelf“* | Startet den Skill und begrüßt dich. |
+| **Fortsetzen (Zuletzt gehört)** | *„Alexa, sage Audiobook Shelf mache weiter“*<br>*„Alexa, frage Audiobook Shelf weiterhören“*<br>*„Alexa, frage Audiobook Shelf fortsetzen“* | Setzt den zuletzt gehörten Titel (egal ob Hörbuch oder Podcast) an der exakten Sekunde fort. |
+| **Gezielt fortsetzen** | *„Alexa, frage Audiobook Shelf setze [Titel] fort“*<br>*„Alexa, frage Audiobook Shelf höre [Titel] weiter“*<br>*„Alexa, frage Audiobook Shelf mache mit [Titel] weiter“* | Setzt ein bestimmtes Hörbuch oder einen bestimmten Podcast fort. |
+| **Hörbuch abspielen** | *„Alexa, frage Audiobook Shelf spiele [Titel]“*<br>*„Alexa, frage Audiobook Shelf spiele das Hörbuch [Titel]“* | Startet das Hörbuch (oder setzt es fort, falls schon begonnen). |
+| **Podcast abspielen** | *„Alexa, frage Audiobook Shelf spiele den Podcast [Titel]“*<br>*„Alexa, frage Audiobook Shelf spiele Podcast [Titel]“* | Startet die neueste bzw. zuletzt begonnene Episode des Podcasts. |
+| **Gezielte Folge** | *„Alexa, frage Audiobook Shelf spiele Folge [Nummer] von [Podcast]“*<br>*„Alexa, frage Audiobook Shelf spiele die neueste Folge von [Podcast]“*<br>*„Alexa, frage Audiobook Shelf spiele die erste Folge von [Podcast]“* | Spielt die gewünschte Folge ab (z. B. *„Folge 5 von Fest und Flauschig“*). |
+| **Folgen springen (Podcasts)** | *„Alexa, frage Audiobook Shelf nächste Folge“*<br>*„Alexa, frage Audiobook Shelf vorherige Folge“*<br>*„Alexa, nächste“* / *„Alexa, vorherige“* | Springt zur nächsten bzw. vorherigen chronologischen Podcast-Episode. |
+| **Kapitel springen (Hörbücher)** | *„Alexa, frage Audiobook Shelf nächstes Kapitel“*<br>*„Alexa, frage Audiobook Shelf vorheriges Kapitel“*<br>*„Alexa, weiter“* / *„Alexa, zurück“* | Springt im aktuellen Hörbuch ein Kapitel vor oder zurück. |
+| **Zeitsprung (Spulen)** | *„Alexa, frage Audiobook Shelf springe [Dauer] zurück“*<br>*„Alexa, frage Audiobook Shelf spule [Dauer] vor“* | Z. B. *„springe 30 Sekunden zurück“* oder *„spule 2 Minuten vor“*. |
+| **Sleep Timer** | *„Alexa, frage Audiobook Shelf stelle den Sleep Timer auf [Dauer]“*<br>*„Alexa, frage Audiobook Shelf schalte in [Dauer] aus“*<br>*„Alexa, frage Audiobook Shelf Sleep Timer abbrechen“* | Stellt einen automatischen Einschlaf-Timer (z. B. *„auf 30 Minuten“*). |
+| **Was läuft gerade?** | *„Alexa, frage Audiobook Shelf was höre ich gerade“*<br>*„Alexa, frage Audiobook Shelf meine angefangenen Podcasts“*<br>*„Alexa, frage Audiobook Shelf meine angefangenen Bücher“* | Listet die zuletzt begonnenen Hörbücher und Podcasts auf. |
+| **Neuheiten & Bibliotheken** | *„Alexa, frage Audiobook Shelf was gibt es Neues“*<br>*„Alexa, frage Audiobook Shelf liste meine Bibliotheken“* | Nennt neu hinzugefügte Medien oder deine Bibliotheksnamen. |
 | **Standard-Steuerung** | *„Alexa, Pause“*<br>*„Alexa, Weiter“*<br>*„Alexa, Stop“* | Steuert die laufende Wiedergabe wie gewohnt. |
 
 > **Tipp für Hardware-Tasten:** Die physischen Tasten (Vor/Zurück) auf Echo-Geräten springen bei Podcasts automatisch zur nächsten Folge und bei Hörbüchern zum nächsten Kapitel.

@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "my audiobooks",
+      "invocationName": "audiobook shelf",
       "intents": [
         { "name": "AMAZON.CancelIntent", "samples": [] },
         { "name": "AMAZON.HelpIntent", "samples": [] },
@@ -68,10 +68,7 @@
             "start {bookTitle}",
             "listen to {bookTitle}",
             "read {bookTitle}",
-            "i want to listen to {bookTitle}",
-            "open {bookTitle}",
-            "play podcast {bookTitle}",
-            "play the podcast {bookTitle}"
+            "i want to listen to {bookTitle}"
           ]
         },
         {
