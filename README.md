@@ -13,6 +13,9 @@ with the web/mobile apps.
 > 📄 **Command Cheat Sheets / Spickzettel (PDF):**
 > - 🇩🇪 [Deutsche Sprachbefehle (PDF)](abs-commands_de.pdf) | [Markdown](abs-commands.md)
 > - 🇬🇧 [English Voice Commands (PDF)](abs-commands_en.pdf) | [Markdown](abs-commands.md)
+>
+> 🔔 **Proactive Notifications / Benachrichtigungen:**
+> - [Setup Guide / Anleitung](docs/proactive-notifications.md) (DE / EN)
 
 ---
 
@@ -613,7 +616,8 @@ synchronisiert, sodass alles mit der Web-/Mobile-App in Sync bleibt.
 
 ## Aufrufname & Sprachbefehle
 
-> 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*
+> 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*  
+> 🔔 **Benachrichtigungen bei neuen Titeln:** [Anleitung für Proactive Events](docs/proactive-notifications.md)
 
 Der Standard-**Aufrufname** ist **`mein Bücherregal`** (z. B. *„Alexa, öffne mein Bücherregal“*).
 
