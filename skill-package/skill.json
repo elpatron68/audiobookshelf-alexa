@@ -3,13 +3,13 @@
     "publishingInformation": {
       "locales": {
         "de-DE": {
-          "name": "audiobookshelf-alexa",
+          "name": "Audiobookshelf",
           "summary": "Höre Hörbücher und Podcasts von deinem Audiobookshelf-Server.",
           "description": "Mit diesem Skill kannst du Hörbücher und Podcasts von deinem selbst gehosteten Audiobookshelf-Server auf einem Alexa-Gerät abspielen. Sage zum Beispiel 'Alexa, öffne Audiobookshelf' oder 'Alexa, sage Audiobookshelf spiele den Podcast Fest und Flauschig'.",
           "examplePhrases": [
-            "Alexa, öffne Audiobookshelf",
-            "Alexa, sage Audiobookshelf spiele den Podcast Fest und Flauschig",
-            "Alexa, sage Audiobookshelf mache weiter"
+            "öffne Audiobookshelf",
+            "frage Audiobookshelf spiele den Podcast Fest und Flauschig",
+            "sage Audiobookshelf mache weiter"
           ],
           "keywords": ["Hörbuch", "Podcast", "Podcasts", "Audiobookshelf", "Audiobook"]
         }
