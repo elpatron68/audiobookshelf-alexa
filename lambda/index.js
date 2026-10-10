@@ -130,6 +130,22 @@ function fuzzyScore(qNorm, titleNorm) {
   return hits / (qNorm.length - 2);
 }
 
+function isPlayableMedia(it) {
+  if (!it) return false;
+  const m = it.media || it;
+  if (it.mediaType === 'podcast' || m.mediaType === 'podcast') return true;
+  if (Array.isArray(m.episodes) && m.episodes.length > 0) return true;
+  if ((it.numAudioFiles || 0) > 0 || (it.numTracks || 0) > 0) return true;
+  if ((m.numAudioFiles || 0) > 0 || (m.numTracks || 0) > 0) return true;
+  if (Array.isArray(m.audioFiles) && m.audioFiles.length > 0) return true;
+  if (Array.isArray(m.tracks) && m.tracks.length > 0) return true;
+  // If explicitly an ebook or has 0 audio files
+  if (m.ebookFile || m.ebookFormat || it.mediaType === 'ebook' || m.mediaType === 'ebook') return false;
+  if (m.numAudioFiles === 0 && (!m.numTracks || m.numTracks === 0)) return false;
+  if (Array.isArray(m.audioFiles) && m.audioFiles.length === 0) return false;
+  return true;
+}
+
 async function localFuzzyFind(client, libraries, query) {
   const qNorm = normalizeForMatch(query);
   if (!qNorm || qNorm.length < 3) return null;
@@ -143,6 +159,7 @@ async function localFuzzyFind(client, libraries, query) {
     const items = (page.results || page.items || page || []);
 
     for (const it of items) {
+      if (!isPlayableMedia(it)) continue;
       const meta = (it.media && it.media.metadata) || it.metadata || {};
       const candidates = [meta.title, meta.subtitle, meta.titleIgnorePrefix]
         .filter(Boolean)
@@ -175,7 +192,9 @@ async function findMedia(client, query, { mediaType = null } = {}) {
     for (const lib of targetLibs) {
       const results = await client.search(lib.id, q, { limit: 5 }).catch(() => null);
       if (!results) continue;
-      const hits = (results.book || results.podcast || results.items || []).map((h) => h.libraryItem || h);
+      const hits = (results.book || results.podcast || results.items || [])
+        .map((h) => h.libraryItem || h)
+        .filter(isPlayableMedia);
       if (hits.length) return hits[0];
     }
   }
@@ -191,7 +210,9 @@ async function findBook(client, libraryId, query) {
     for (const l of lib) {
       const results = await client.search(l.id, q, { limit: 5 }).catch(() => null);
       if (!results) continue;
-      const hits = (results.book || results.items || []).map((h) => h.libraryItem || h);
+      const hits = (results.book || results.items || [])
+        .map((h) => h.libraryItem || h)
+        .filter(isPlayableMedia);
       if (hits.length) return hits[0];
     }
   }
@@ -216,6 +237,12 @@ function currentPlaybackState(handlerInput) {
 // Build an AudioPlayer Play directive that streams an audiobookshelf item
 // (either a book or a podcast episode) from a given offset.
 async function buildPlayDirective(client, item, opts = {}) {
+  if (!isPlayableMedia(item)) {
+    const err = new Error(`Item ${item.id} has no audio files`);
+    err.code = 'NO_AUDIO';
+    throw err;
+  }
+
   const { bookOffsetSec = 0, sleepDeadline = null } = opts;
   const isPodcast = item.mediaType === 'podcast' || Boolean(item.media && Array.isArray(item.media.episodes));
 
@@ -259,7 +286,11 @@ async function buildPlayDirective(client, item, opts = {}) {
   }
 
   const tracks = session.audioTracks || [];
-  if (!tracks.length) throw new Error(`item ${item.id} has no audio tracks`);
+  if (!tracks.length) {
+    const err = new Error(`item ${item.id} has no audio tracks`);
+    err.code = 'NO_AUDIO';
+    throw err;
+  }
 
   const totalDuration = isPodcast
     ? ((episode && episode.duration) || tracks[0].duration || 0)
@@ -478,6 +509,7 @@ const RecentBooksIntentHandler = {
         if (list) {
           const items = (list.results || list.items || []);
           for (const it of items) {
+            if (!isPlayableMedia(it)) continue;
             const tName = it.media && it.media.metadata && it.media.metadata.title;
             if (tName && !titles.includes(tName)) titles.push(tName);
           }
@@ -505,11 +537,12 @@ const ListInProgressIntentHandler = {
       const inProg = (me.mediaProgress || [])
         .filter((p) => !p.isFinished && p.currentTime > 0)
         .sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0))
-        .slice(0, 5);
+        .slice(0, 10);
 
       const titles = await Promise.all(inProg.map(async (p) => {
         try {
           const it = await client.getItem(p.libraryItemId);
+          if (!isPlayableMedia(it)) return null;
           const metaTitle = it.media && it.media.metadata && it.media.metadata.title;
           if (p.episodeId && it.media && Array.isArray(it.media.episodes)) {
             const ep = it.media.episodes.find((e) => e.id === p.episodeId);
@@ -544,12 +577,13 @@ const PlayBookIntentHandler = {
     if (!query) {
       return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
     }
+    let fullItem = null;
     try {
       // Find across all libraries (books or podcasts)
       const found = await findMedia(client, query);
       if (!found) return h.responseBuilder.speak(speak('bookNotFound', query)).getResponse();
 
-      const fullItem = await client.getItem(found.id);
+      fullItem = await client.getItem(found.id);
       const isPodcast = fullItem.mediaType === 'podcast' || Boolean(fullItem.media && Array.isArray(fullItem.media.episodes));
 
       let resumeAt = 0;
@@ -566,6 +600,9 @@ const PlayBookIntentHandler = {
       return h.responseBuilder.speak(speechText).addDirective(directive).getResponse();
     } catch (err) {
       console.error('PlayBookIntent error:', err);
+      if (err.code === 'NO_AUDIO' || (err.message && err.message.includes('404'))) {
+        return h.responseBuilder.speak(speak('noAudioFiles', query || (fullItem && fullItem.media?.metadata?.title))).getResponse();
+      }
       return h.responseBuilder.speak(speak('serverError')).getResponse();
     }
   },
@@ -587,11 +624,12 @@ const PlayPodcastIntentHandler = {
       return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
     }
 
+    let fullItem = null;
     try {
       const found = await findMedia(client, query, { mediaType: 'podcast' });
       if (!found) return h.responseBuilder.speak(speak('podcastNotFound', query)).getResponse();
 
-      const fullItem = await client.getItem(found.id);
+      fullItem = await client.getItem(found.id);
       const { directive, title, itemTitle } = await buildPlayDirective(client, fullItem);
       return h.responseBuilder
         .speak(speak('playingPodcast', title, itemTitle))
@@ -599,6 +637,9 @@ const PlayPodcastIntentHandler = {
         .getResponse();
     } catch (err) {
       console.error('PlayPodcastIntent error:', err);
+      if (err.code === 'NO_AUDIO' || (err.message && err.message.includes('404'))) {
+        return h.responseBuilder.speak(speak('noAudioFiles', query || (fullItem && fullItem.media?.metadata?.title))).getResponse();
+      }
       return h.responseBuilder.speak(speak('serverError')).getResponse();
     }
   },
@@ -682,6 +723,9 @@ const PlayEpisodeIntentHandler = {
         .getResponse();
     } catch (err) {
       console.error('PlayEpisodeIntent error:', err);
+      if (err.code === 'NO_AUDIO' || (err.message && err.message.includes('404'))) {
+        return h.responseBuilder.speak(speak('noAudioFiles', episodeQuery || (fullItem && fullItem.media?.metadata?.title))).getResponse();
+      }
       return h.responseBuilder.speak(speak('serverError')).getResponse();
     }
   },
@@ -755,10 +799,22 @@ const ContinueListeningIntentHandler = {
           return h.responseBuilder.speak(speak('nothingToResume')).getResponse();
         }
 
-        const top = inProgress[0];
-        item = await client.getItem(top.libraryItemId);
-        targetEpisodeId = top.episodeId || null;
-        resumeAt = top.currentTime || 0;
+        // Find the first in-progress item that is actually playable (audiobook or podcast)
+        for (const prog of inProgress) {
+          try {
+            const candidate = await client.getItem(prog.libraryItemId);
+            if (isPlayableMedia(candidate)) {
+              item = candidate;
+              targetEpisodeId = prog.episodeId || null;
+              resumeAt = prog.currentTime || 0;
+              break;
+            }
+          } catch (_) {}
+        }
+
+        if (!item) {
+          return h.responseBuilder.speak(speak('nothingToResume')).getResponse();
+        }
       }
 
       const { directive, title, author, isPodcast, itemTitle } = await buildPlayDirective(client, item, {
@@ -773,6 +829,9 @@ const ContinueListeningIntentHandler = {
       return h.responseBuilder.speak(speechText).addDirective(directive).getResponse();
     } catch (err) {
       console.error('ContinueListeningIntent error:', err);
+      if (err.code === 'NO_AUDIO' || (err.message && err.message.includes('404'))) {
+        return h.responseBuilder.speak(speak('noAudioFiles', query || (item && item.media?.metadata?.title))).getResponse();
+      }
       return h.responseBuilder.speak(speak('serverError')).getResponse();
     }
   },
@@ -1179,4 +1238,5 @@ exports._internals = {
   currentPlaybackState,
   findMedia,
   getLibraries,
+  isPlayableMedia,
 };

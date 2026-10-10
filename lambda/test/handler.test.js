@@ -532,3 +532,92 @@ test('Linked user request works in production mode with accessToken', async () =
   }
 });
 
+test('isPlayableMedia accurately distinguishes playable audio from non-audio ebooks', () => {
+  const { isPlayableMedia } = require('../index')._internals;
+  assert.equal(isPlayableMedia(null), false);
+  assert.equal(isPlayableMedia({ mediaType: 'podcast' }), true);
+  assert.equal(isPlayableMedia({ media: { episodes: [{ id: 'ep1' }] } }), true);
+  assert.equal(isPlayableMedia({ media: { numAudioFiles: 3 } }), true);
+  assert.equal(isPlayableMedia({ media: { tracks: [{ id: 't1' }] } }), true);
+  assert.equal(isPlayableMedia({ media: { audioFiles: [{ ino: '1' }] } }), true);
+
+  // E-books / non-audio items
+  assert.equal(isPlayableMedia({ media: { ebookFile: { format: 'epub' } } }), false);
+  assert.equal(isPlayableMedia({ media: { ebookFormat: 'epub' } }), false);
+  assert.equal(isPlayableMedia({ mediaType: 'ebook' }), false);
+  assert.equal(isPlayableMedia({ media: { numAudioFiles: 0, numTracks: 0 } }), false);
+  assert.equal(isPlayableMedia({ media: { audioFiles: [] } }), false);
+});
+
+test('ContinueListeningIntent skips non-audio ebooks in progress and resumes next playable audiobook', async () => {
+  FIXTURE.items['item-ebook-planet'] = {
+    id: 'item-ebook-planet',
+    mediaType: 'book',
+    media: {
+      metadata: { title: 'Planet der tausend Freuden', authorName: 'Autor' },
+      ebookFile: { ino: '888', format: 'epub' },
+      numAudioFiles: 0,
+      numTracks: 0,
+      audioFiles: [],
+    },
+    userMediaProgress: {
+      currentTime: 100,
+      duration: 1000,
+      isFinished: false,
+      lastUpdate: 2_000_000_000_000,
+    },
+  };
+
+  const origProgress = [...FIXTURE.me.mediaProgress];
+  FIXTURE.me.mediaProgress = [
+    {
+      id: 'prog-ebook',
+      libraryItemId: 'item-ebook-planet',
+      currentTime: 100,
+      duration: 1000,
+      isFinished: false,
+      lastUpdate: 2_000_000_000_000,
+    },
+    {
+      id: 'prog-hobbit',
+      libraryItemId: 'item-A',
+      currentTime: 70,
+      duration: 180,
+      isFinished: false,
+      lastUpdate: 1_900_000_000_000,
+    },
+  ];
+
+  try {
+    const res = await invoke(handler, intent('ContinueListeningIntent'));
+    assert.match(speech(res), /The Hobbit/);
+    const tok = decodeToken(playDirective(res).audioItem.stream.token);
+    assert.equal(tok.itemId, 'item-A');
+  } finally {
+    FIXTURE.me.mediaProgress = origProgress;
+    delete FIXTURE.items['item-ebook-planet'];
+  }
+});
+
+test('buildPlayDirective throws NO_AUDIO for non-playable items', async () => {
+  FIXTURE.items['item-only-ebook'] = {
+    id: 'item-only-ebook',
+    mediaType: 'book',
+    media: {
+      metadata: { title: 'Nur ein E-Book', authorName: 'Autor' },
+      ebookFile: { ino: '889', format: 'epub' },
+      numAudioFiles: 0,
+      numTracks: 0,
+      audioFiles: [],
+    },
+  };
+
+  const { buildPlayDirective } = require('../index')._internals;
+  await assert.rejects(
+    async () => buildPlayDirective({}, FIXTURE.items['item-only-ebook']),
+    (err) => err.code === 'NO_AUDIO'
+  );
+
+  delete FIXTURE.items['item-only-ebook'];
+});
+

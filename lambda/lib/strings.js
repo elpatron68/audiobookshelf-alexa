@@ -17,6 +17,7 @@ const en = {
   podcastNotFound: (q) => `I could not find a podcast matching ${q}.`,
   episodeNotFound: (ep, pod) => `I could not find episode ${ep} of ${pod}.`,
   noEpisodes: 'This podcast does not have any playable episodes.',
+  noAudioFiles: (t) => t ? `No audio files are available for ${t}.` : 'No audio files are available for this title.',
   playing: (title, author) => author
     ? `Playing ${title} by ${author}.`
     : `Playing ${title}.`,
@@ -59,6 +60,7 @@ const de = {
   podcastNotFound: (q) => `Ich habe keinen Podcast zu ${q} gefunden.`,
   episodeNotFound: (ep, pod) => `Ich konnte die Folge ${ep} von ${pod} nicht finden.`,
   noEpisodes: 'Dieser Podcast hat keine abspielbaren Folgen.',
+  noAudioFiles: (t) => t ? `Für ${t} sind keine Audiodateien vorhanden.` : 'Für diesen Titel sind keine Audiodateien vorhanden.',
   playing: (title, author) => author
     ? `Spiele ${title} von ${author}.`
     : `Spiele ${title}.`,

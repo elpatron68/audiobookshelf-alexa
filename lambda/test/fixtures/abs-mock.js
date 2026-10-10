@@ -202,7 +202,7 @@ async function route(url, init = {}) {
     const itemId = m[1];
     const episodeId = m[2];
     const item = FIXTURE.items[itemId];
-    if (!item) return notFound(path);
+    if (!item || (item.media && (item.media.ebookFile || item.media.numAudioFiles === 0))) return notFound(path);
     const sessionId = `sess-${itemId}-${FIXTURE.sessions.size + 1}`;
     const audioTracks = audioTracksFor(item, episodeId);
     FIXTURE.sessions.set(sessionId, { itemId, episodeId, audioTracks });
