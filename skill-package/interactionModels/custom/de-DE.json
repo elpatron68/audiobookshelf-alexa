@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "bücherregal",
+      "invocationName": "mein bücherregal",
       "intents": [
         { "name": "AMAZON.CancelIntent", "samples": [] },
         { "name": "AMAZON.HelpIntent", "samples": [] },
