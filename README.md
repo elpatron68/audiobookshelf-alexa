@@ -1156,3 +1156,33 @@ Skill-Namen.
 - API-Keys-Guide: <https://www.audiobookshelf.org/guides/api-keys/>
 - Aktuelle API-Quelle der Wahrheit: der audiobookshelf-Server-Quellcode
   selbst unter <https://github.com/advplyr/audiobookshelf>.
+
+## CI/CD Pipeline (GitHub Actions & GitHub CLI)
+
+Das Repository verfügt über eine automatisierte CI/CD-Pipeline unter [deploy.yml](file:///.github/workflows/deploy.yml):
+
+* **CI (`test`)**: Führt bei jedem Push und Pull Request die komplette Testsuite (55 Unit Tests) aus und validiert alle JSON-Konfigurationen und Sprachmodelle.
+* **CD (`deploy-lambda`)**: Bei jedem Push auf den `main`-Branch wird der Lambda-Code automatisch verpackt, nach AWS hochgeladen und aktualisiert.
+* **CD (`deploy-skill`)**: Aktualisiert parallel die Alexa-Sprachmodelle (`de-DE`, `en-US`) und das Manifest direkt bei Amazon via ASK CLI / SMAPI.
+
+### Secrets in GitHub verwalten (via GitHub CLI)
+
+Die Pipeline nutzt folgende GitHub Repository Secrets:
+
+```bash
+# AWS-Zugangsdaten für Lambda
+gh secret set AWS_ACCESS_KEY_ID -b "DEIN_KEY"
+gh secret set AWS_SECRET_ACCESS_KEY -b "DEIN_SECRET"
+gh secret set AWS_REGION -b "us-east-1"
+
+# Amazon Alexa ASK CLI Zugangsdaten
+gh secret set ALEXA_SKILL_ID -b "amzn1.ask.skill.xxx"
+gh secret set ASK_REFRESH_TOKEN -b "DEIN_REFRESH_TOKEN"
+gh secret set ASK_VENDOR_ID -b "DEINE_VENDOR_ID"
+```
+
+Manueller Start der Pipeline via CLI:
+```bash
+gh workflow run deploy.yml
+gh run watch
+```

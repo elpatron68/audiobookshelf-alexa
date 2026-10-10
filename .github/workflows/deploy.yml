@@ -1,0 +1,137 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+          cache-dependency-path: 'lambda/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: lambda
+        run: npm ci
+
+      - name: Run test suite
+        working-directory: lambda
+        run: npm test
+
+      - name: Validate JSON configuration & models
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('skill-package/skill.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('skill-package/interactionModels/custom/de-DE.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('skill-package/interactionModels/custom/en-US.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('ask-resources.json'))"
+
+  deploy-lambda:
+    name: Deploy AWS Lambda
+    needs: test
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Build production package
+        run: |
+          cd lambda
+          npm ci --omit=dev
+          zip -q -r ../audiobookshelf-alexa.zip . -x "test/*" "*.test.js"
+          cd ..
+          ls -lh audiobookshelf-alexa.zip
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Deploy Lambda code
+        run: |
+          echo "Updating Lambda function audiobookshelf-alexa..."
+          aws lambda update-function-code \
+            --function-name audiobookshelf-alexa \
+            --zip-file fileb://audiobookshelf-alexa.zip
+
+          echo "Waiting for Lambda function update to complete..."
+          aws lambda wait function-updated \
+            --function-name audiobookshelf-alexa
+          echo "Lambda deployment successful!"
+
+  deploy-skill:
+    name: Deploy Alexa Skill
+    needs: test
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && secrets.ASK_REFRESH_TOKEN != ''
+    runs-on: ubuntu-latest
+    env:
+      ASK_REFRESH_TOKEN: ${{ secrets.ASK_REFRESH_TOKEN }}
+      ASK_VENDOR_ID: ${{ secrets.ASK_VENDOR_ID }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install ASK CLI
+        run: npm install -g ask-cli
+
+      - name: Deploy interaction models & manifest
+        run: |
+          SKILL_ID="${{ secrets.ALEXA_SKILL_ID }}"
+          echo "Deploying to Alexa Skill: $SKILL_ID"
+
+          echo "Updating German interaction model (de-DE)..."
+          ask smapi set-interaction-model -s "$SKILL_ID" -g development -l de-DE --interaction-model "file:skill-package/interactionModels/custom/de-DE.json"
+
+          echo "Updating English interaction model (en-US)..."
+          ask smapi set-interaction-model -s "$SKILL_ID" -g development -l en-US --interaction-model "file:skill-package/interactionModels/custom/en-US.json"
+
+          echo "Updating Skill manifest (skill.json)..."
+          ask smapi update-skill-manifest -s "$SKILL_ID" -g development --manifest "file:skill-package/skill.json"
+
+      - name: Wait for model build
+        run: |
+          SKILL_ID="${{ secrets.ALEXA_SKILL_ID }}"
+          echo "Waiting for interaction model build to finish..."
+          for i in {1..12}; do
+            sleep 5
+            STATUS=$(ask smapi get-skill-status -s "$SKILL_ID" 2>/dev/null || true)
+            DE_STATUS=$(echo "$STATUS" | jq -r '.interactionModel."de-DE".lastUpdateRequest.status // "PENDING"')
+            MANIFEST_STATUS=$(echo "$STATUS" | jq -r '.manifest.lastUpdateRequest.status // "PENDING"')
+            echo "Check $i: Model Build = $DE_STATUS | Manifest = $MANIFEST_STATUS"
+            if [ "$DE_STATUS" == "SUCCEEDED" ] && [ "$MANIFEST_STATUS" == "SUCCEEDED" ]; then
+              echo "Skill deployment and model build SUCCEEDED!"
+              exit 0
+            elif [ "$DE_STATUS" == "FAILED" ] || [ "$MANIFEST_STATUS" == "FAILED" ]; then
+              echo "Skill deployment FAILED!"
+              exit 1
+            fi
+          done
+          echo "Skill update submitted (build took longer than 60s, continuing in background)."
