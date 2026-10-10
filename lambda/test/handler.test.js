@@ -322,3 +322,145 @@ test('AMAZON.StopIntent stops playback', async () => {
   const res = await invoke(handler, intent('AMAZON.StopIntent'));
   assert.ok(stopDirective(res));
 });
+
+// ---------------------------------------------------------------------------
+// Podcasts
+// ---------------------------------------------------------------------------
+
+test('PlayPodcastIntent plays latest episode by default', async () => {
+  const res = await invoke(handler, intent('PlayPodcastIntent', { podcastTitle: 'Tech Talk' }));
+  assert.match(speech(res), /Spiele Episode 2: Deep Dive von Tech Talk/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  assert.match(dir.audioItem.stream.url, /track-ep2/);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.itemId, 'item-pod-1');
+  assert.equal(tok.mediaType, 'podcast');
+  assert.equal(tok.episodeId, 'ep-2');
+});
+
+test('PlayEpisodeIntent plays specific episode by number', async () => {
+  const res = await invoke(handler, intent('PlayEpisodeIntent', { podcastTitle: 'Tech Talk', episodeQuery: '1' }));
+  assert.match(speech(res), /Spiele Episode 1: Hello World von Tech Talk/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  assert.match(dir.audioItem.stream.url, /track-ep1/);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-1');
+});
+
+test('PlayBookIntent with a podcast title plays the podcast', async () => {
+  const res = await invoke(handler, intent('PlayBookIntent', { bookTitle: 'Tech Talk' }));
+  assert.match(speech(res), /Spiele Episode 2: Deep Dive/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.mediaType, 'podcast');
+});
+
+test('ContinueListeningIntent resumes an in-progress podcast episode', async () => {
+  FIXTURE.me.mediaProgress.unshift({
+    libraryItemId: 'item-pod-1',
+    episodeId: 'ep-1',
+    currentTime: 45,
+    duration: 120,
+    isFinished: false,
+    lastUpdate: 1_800_000_000_000,
+  });
+  const res = await invoke(handler, intent('ContinueListeningIntent'));
+  assert.match(speech(res), /Setze Episode 1: Hello World von Tech Talk fort/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  assert.equal(dir.audioItem.stream.offsetInMilliseconds, 45_000);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-1');
+  assert.equal(tok.mediaType, 'podcast');
+});
+
+test('NextEpisodeIntent and AMAZON.NextIntent advance to the next episode in podcast', async () => {
+  const ap = audioPlayerCtx({
+    tokenState: {
+      sessionId: 's',
+      itemId: 'item-pod-1',
+      mediaType: 'podcast',
+      episodeId: 'ep-1',
+      trackIndex: 0,
+      trackCount: 1,
+      trackStart: 0,
+      bookDuration: 120,
+    },
+    offsetMs: 30_000,
+  });
+  const res = await invoke(handler, intent('AMAZON.NextIntent', {}, { audioPlayer: ap }));
+  assert.match(speech(res), /Folge: Episode 2: Deep Dive/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-2');
+});
+
+test('AMAZON.PreviousIntent moves to the previous episode in podcast', async () => {
+  const ap = audioPlayerCtx({
+    tokenState: {
+      sessionId: 's',
+      itemId: 'item-pod-1',
+      mediaType: 'podcast',
+      episodeId: 'ep-2',
+      trackIndex: 0,
+      trackCount: 1,
+      trackStart: 0,
+      bookDuration: 180,
+    },
+    offsetMs: 10_000,
+  });
+  const res = await invoke(handler, intent('AMAZON.PreviousIntent', {}, { audioPlayer: ap }));
+  assert.match(speech(res), /Folge: Episode 1: Hello World/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-1');
+});
+
+test('AMAZON.NextIntent at newest episode speaks already at newest', async () => {
+  const ap = audioPlayerCtx({
+    tokenState: {
+      sessionId: 's',
+      itemId: 'item-pod-1',
+      mediaType: 'podcast',
+      episodeId: 'ep-2',
+      trackIndex: 0,
+      trackCount: 1,
+      trackStart: 0,
+      bookDuration: 180,
+    },
+    offsetMs: 10_000,
+  });
+  const res = await invoke(handler, intent('AMAZON.NextIntent', {}, { audioPlayer: ap }));
+  assert.match(speech(res), /bereits die neueste Folge/);
+  assert.equal(playDirective(res), undefined);
+});
+
+test('AudioPlayer.PlaybackNearlyFinished enqueues next episode for podcast', async () => {
+  const prevState = {
+    sessionId: 's',
+    itemId: 'item-pod-1',
+    mediaType: 'podcast',
+    episodeId: 'ep-1',
+    trackIndex: 0,
+    trackCount: 1,
+    trackStart: 0,
+    bookDuration: 120,
+  };
+  const env = audioPlayerEvent('PlaybackNearlyFinished', {
+    token: encodeToken(prevState),
+    offsetInMilliseconds: 110_000,
+  });
+  const res = await invoke(handler, env);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  assert.equal(dir.playBehavior, 'ENQUEUE');
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-2');
+  assert.equal(tok.mediaType, 'podcast');
+});
+

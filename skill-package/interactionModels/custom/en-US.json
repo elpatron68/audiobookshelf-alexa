@@ -30,6 +30,26 @@
             "one chapter back"
           ]
         },
+        {
+          "name": "NextEpisodeIntent",
+          "slots": [],
+          "samples": [
+            "next episode",
+            "skip to next episode",
+            "next podcast episode",
+            "one episode forward"
+          ]
+        },
+        {
+          "name": "PreviousEpisodeIntent",
+          "slots": [],
+          "samples": [
+            "previous episode",
+            "last episode",
+            "go back an episode",
+            "one episode back"
+          ]
+        },
         { "name": "AMAZON.LoopOnIntent", "samples": [] },
         { "name": "AMAZON.LoopOffIntent", "samples": [] },
         { "name": "AMAZON.ShuffleOnIntent", "samples": [] },
@@ -49,7 +69,36 @@
             "listen to {bookTitle}",
             "read {bookTitle}",
             "i want to listen to {bookTitle}",
-            "open {bookTitle}"
+            "open {bookTitle}",
+            "play podcast {bookTitle}",
+            "play the podcast {bookTitle}"
+          ]
+        },
+        {
+          "name": "PlayPodcastIntent",
+          "slots": [
+            { "name": "podcastTitle", "type": "AMAZON.SearchQuery" }
+          ],
+          "samples": [
+            "play podcast {podcastTitle}",
+            "play the podcast {podcastTitle}",
+            "start podcast {podcastTitle}",
+            "listen to podcast {podcastTitle}",
+            "podcast {podcastTitle}"
+          ]
+        },
+        {
+          "name": "PlayEpisodeIntent",
+          "slots": [
+            { "name": "podcastTitle", "type": "AMAZON.SearchQuery" },
+            { "name": "episodeQuery", "type": "AMAZON.SearchQuery" }
+          ],
+          "samples": [
+            "play episode {episodeQuery} of {podcastTitle}",
+            "play episode {episodeQuery} of podcast {podcastTitle}",
+            "play the latest episode of {podcastTitle}",
+            "play the latest episode of podcast {podcastTitle}",
+            "play the newest episode of {podcastTitle}"
           ]
         },
         {
@@ -76,6 +125,7 @@
             "what am i listening to",
             "what books am i listening to",
             "my in progress books",
+            "my in progress podcasts",
             "which books did i start",
             "what is in progress"
           ]
@@ -95,6 +145,8 @@
           "samples": [
             "what are the latest audiobooks",
             "new audiobooks",
+            "new podcasts",
+            "new episodes",
             "recently added books",
             "what is new"
           ]

@@ -77,6 +77,115 @@ function unitToSeconds(unit) {
   return 60;
 }
 
+// Sort podcast episodes chronologically (default: oldest -> newest, so ep1 is index 0)
+// or reverse (ascending: false -> newest first).
+function sortEpisodes(episodes, { ascending = true } = {}) {
+  if (!Array.isArray(episodes)) return [];
+  const list = [...episodes];
+  return list.sort((a, b) => {
+    const timeA = a.publishedAt || (a.pubDate ? new Date(a.pubDate).getTime() : 0) || a.addedAt || 0;
+    const timeB = b.publishedAt || (b.pubDate ? new Date(b.pubDate).getTime() : 0) || b.addedAt || 0;
+    if (timeA !== timeB) {
+      return ascending ? timeA - timeB : timeB - timeA;
+    }
+    const numA = parseInt(a.episode, 10);
+    const numB = parseInt(b.episode, 10);
+    if (!Number.isNaN(numA) && !Number.isNaN(numB) && numA !== numB) {
+      return ascending ? numA - numB : numB - numA;
+    }
+    return 0;
+  });
+}
+
+const NUMBER_WORDS = {
+  eins: 1, eine: 1, ersten: 1, erste: 1, one: 1, first: 1,
+  zwei: 2, zweiten: 2, zweite: 2, two: 2, second: 2,
+  drei: 3, dritten: 3, dritte: 3, three: 3, third: 3,
+  vier: 4, vierten: 4, vierte: 4, four: 4, fourth: 4,
+  fünf: 5, fuenf: 5, fünften: 5, five: 5, fifth: 5,
+  sechs: 6, sechsten: 6, six: 6, sixth: 6,
+  sieben: 7, siebten: 7, seven: 7, seventh: 7,
+  acht: 8, achten: 8, eight: 8, eighth: 8,
+  neun: 9, neunten: 9, nine: 9, ninth: 9,
+  zehn: 10, zehnten: 10, ten: 10, tenth: 10,
+  elf: 11, elften: 11, eleven: 11,
+  zwölf: 12, zwoelf: 12, zwölften: 12, twelve: 12,
+  dreizehn: 13, dreizehnten: 13, thirteen: 13,
+  vierzehn: 14, vierzehnten: 14, fourteen: 14,
+  fünfzehn: 15, fuenfzehn: 15, fünfzehnten: 15, fifteen: 15,
+  zwanzig: 20, zwanzigsten: 20, twenty: 20,
+};
+
+function parseEpisodeQuery(rawQuery) {
+  if (!rawQuery) return { isLatest: true };
+  const q = String(rawQuery).toLowerCase().trim();
+
+  // Latest / Newest checks
+  if (/\b(neueste|neuesten|aktuellste|aktuellsten|letzte|letzten|neue|latest|newest|last)\b/i.test(q)) {
+    return { isLatest: true };
+  }
+  // First / Oldest checks
+  if (/\b(erste|ersten|älteste|ältesten|first|oldest)\b/i.test(q)) {
+    return { isFirst: true };
+  }
+
+  // Look for digit
+  const digitMatch = q.match(/\b(\d+)\b/);
+  if (digitMatch) {
+    return { episodeNumber: parseInt(digitMatch[1], 10), textQuery: q };
+  }
+
+  // Look for word numbers
+  for (const [word, val] of Object.entries(NUMBER_WORDS)) {
+    const rx = new RegExp(`\\b${word}\\b`, 'i');
+    if (rx.test(q)) {
+      return { episodeNumber: val, textQuery: q };
+    }
+  }
+
+  return { textQuery: q };
+}
+
+function matchEpisode(episodes, rawQuery) {
+  if (!Array.isArray(episodes) || !episodes.length) return null;
+  const sorted = sortEpisodes(episodes, { ascending: true }); // index 0 is oldest, last is newest
+  const parsed = parseEpisodeQuery(rawQuery);
+
+  if (parsed.isLatest) {
+    return sorted[sorted.length - 1];
+  }
+  if (parsed.isFirst) {
+    return sorted[0];
+  }
+
+  if (parsed.episodeNumber != null) {
+    const num = parsed.episodeNumber;
+    // 1. Direct match on episode attribute
+    const byNum = sorted.find((ep) => parseInt(ep.episode, 10) === num);
+    if (byNum) return byNum;
+
+    // 2. Search in title e.g. "Folge 5" or "#5"
+    const byTitleRx = new RegExp(`(?:folge|episode|#)\\s*0*${num}\\b`, 'i');
+    const byTitle = sorted.find((ep) => ep.title && byTitleRx.test(ep.title));
+    if (byTitle) return byTitle;
+
+    // 3. Fallback: if num <= episodes.length, treat as 1-based index
+    if (num >= 1 && num <= sorted.length) {
+      return sorted[num - 1];
+    }
+  }
+
+  if (parsed.textQuery) {
+    const cleanQ = parsed.textQuery.replace(/^(folge|episode)\s+/i, '').trim();
+    // Substring match in title
+    const hit = sorted.find((ep) => (ep.title || '').toLowerCase().includes(cleanQ));
+    if (hit) return hit;
+  }
+
+  // Fallback to latest
+  return sorted[sorted.length - 1];
+}
+
 module.exports = {
   locateTrack,
   bookOffsetForTrack,
@@ -85,4 +194,7 @@ module.exports = {
   decodeToken,
   sleepDeadlineExpired,
   unitToSeconds,
+  sortEpisodes,
+  parseEpisodeQuery,
+  matchEpisode,
 };

@@ -10,6 +10,7 @@ const FIXTURE = {
   apiKey: 'test-key',
   libraries: [
     { id: 'lib-1', name: 'Books', mediaType: 'book' },
+    { id: 'lib-2', name: 'Podcasts', mediaType: 'podcast' },
   ],
   // Keyed by item id. audioFiles[].duration sums to media.duration; chapters
   // align to file boundaries here, but they don't have to in real data.
@@ -56,6 +57,38 @@ const FIXTURE = {
       },
       userMediaProgress: null,
     },
+    'item-pod-1': {
+      id: 'item-pod-1',
+      mediaType: 'podcast',
+      media: {
+        metadata: { title: 'Tech Talk', author: 'Coder' },
+        episodes: [
+          {
+            id: 'ep-1',
+            title: 'Episode 1: Hello World',
+            episode: '1',
+            publishedAt: 1_700_000_000_000,
+            duration: 120,
+            audioTrack: {
+              contentUrl: '/api/items/item-pod-1/file/track-ep1',
+              duration: 120,
+            },
+          },
+          {
+            id: 'ep-2',
+            title: 'Episode 2: Deep Dive',
+            episode: '2',
+            publishedAt: 1_700_100_000_000,
+            duration: 180,
+            audioTrack: {
+              contentUrl: '/api/items/item-pod-1/file/track-ep2',
+              duration: 180,
+            },
+          },
+        ],
+      },
+      userMediaProgress: null,
+    },
   },
   me: {
     username: 'tester',
@@ -75,7 +108,20 @@ const FIXTURE = {
   syncCalls: [],
 };
 
-function audioTracksFor(item) {
+function audioTracksFor(item, episodeId = null) {
+  if (item.mediaType === 'podcast' || (item.media && item.media.episodes)) {
+    const ep = (item.media.episodes || []).find((e) => e.id === episodeId) || (item.media.episodes || [])[0];
+    if (!ep) return [];
+    return [{
+      index: 1,
+      title: ep.title,
+      duration: ep.duration,
+      mimeType: 'audio/mpeg',
+      contentUrl: ep.audioTrack ? ep.audioTrack.contentUrl : `/api/items/${item.id}/file/${ep.id}`,
+      startOffset: 0,
+    }];
+  }
+
   let acc = 0;
   return (item.media.audioFiles || []).map((f, i) => {
     const t = {
@@ -121,16 +167,29 @@ async function route(url, init = {}) {
     const libId = m[1];
     const lib = FIXTURE.libraries.find((l) => l.id === libId);
     if (!lib) return notFound(path);
-    const all = Object.values(FIXTURE.items);
+    const all = Object.values(FIXTURE.items).filter((it) => {
+      if (lib.mediaType === 'podcast') return it.mediaType === 'podcast';
+      return it.mediaType !== 'podcast';
+    });
     const limit = parseInt(u.searchParams.get('limit') || '50', 10);
     return makeResponse({ results: all.slice(0, limit), total: all.length });
   }
 
   if ((m = path.match(/^\/api\/libraries\/([^/]+)\/search$/)) && method === 'GET') {
+    const libId = m[1];
+    const lib = FIXTURE.libraries.find((l) => l.id === libId);
     const q = (u.searchParams.get('q') || '').toLowerCase();
     const hits = Object.values(FIXTURE.items)
-      .filter((it) => it.media.metadata.title.toLowerCase().includes(q))
+      .filter((it) => {
+        if (lib && lib.mediaType === 'podcast' && it.mediaType !== 'podcast') return false;
+        if (lib && lib.mediaType === 'book' && it.mediaType === 'podcast') return false;
+        return it.media.metadata.title.toLowerCase().includes(q);
+      })
       .map((it) => ({ libraryItem: it }));
+
+    if (lib && lib.mediaType === 'podcast') {
+      return makeResponse({ podcast: hits });
+    }
     return makeResponse({ book: hits });
   }
 
@@ -139,12 +198,14 @@ async function route(url, init = {}) {
     return item ? makeResponse(item) : notFound(path);
   }
 
-  if ((m = path.match(/^\/api\/items\/([^/]+)\/play$/)) && method === 'POST') {
-    const item = FIXTURE.items[m[1]];
+  if ((m = path.match(/^\/api\/items\/([^/]+)\/play(?:\/([^/]+))?$/)) && method === 'POST') {
+    const itemId = m[1];
+    const episodeId = m[2];
+    const item = FIXTURE.items[itemId];
     if (!item) return notFound(path);
-    const sessionId = `sess-${m[1]}-${FIXTURE.sessions.size + 1}`;
-    const audioTracks = audioTracksFor(item);
-    FIXTURE.sessions.set(sessionId, { itemId: m[1], audioTracks });
+    const sessionId = `sess-${itemId}-${FIXTURE.sessions.size + 1}`;
+    const audioTracks = audioTracksFor(item, episodeId);
+    FIXTURE.sessions.set(sessionId, { itemId, episodeId, audioTracks });
     const body = init.body ? JSON.parse(init.body) : {};
     return makeResponse({
       id: sessionId,

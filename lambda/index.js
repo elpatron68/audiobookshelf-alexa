@@ -10,6 +10,8 @@ const {
   decodeToken,
   sleepDeadlineExpired,
   unitToSeconds,
+  sortEpisodes,
+  matchEpisode,
 } = require('./lib/playback');
 const { t } = require('./lib/strings');
 
@@ -33,41 +35,45 @@ function getClient(handlerInput) {
   }
 }
 
-async function resolveLibraryId(client) {
+async function getLibraries(client) {
+  const res = await client.listLibraries();
+  return res.libraries || res || [];
+}
+
+async function getLibrariesByType(client, mediaType) {
+  const libs = await getLibraries(client);
+  if (!mediaType) return libs;
+  return libs.filter((l) => l.mediaType === mediaType);
+}
+
+async function resolveLibraryId(client, preferredType = 'book') {
   if (process.env.ABS_DEFAULT_LIBRARY_ID) return process.env.ABS_DEFAULT_LIBRARY_ID;
-  const { libraries = [] } = await client.listLibraries();
-  const book = libraries.find((l) => l.mediaType === 'book') || libraries[0];
-  if (!book) throw new Error('no libraries configured on audiobookshelf');
-  return book.id;
+  const libs = await getLibraries(client);
+  const preferred = libs.find((l) => l.mediaType === preferredType);
+  if (preferred) return preferred.id;
+  const fallback = libs[0];
+  if (!fallback) throw new Error('no libraries configured on audiobookshelf');
+  return fallback.id;
 }
 
 // Generate progressively-broader search queries from a user utterance.
-// audiobookshelf's /search is a tokenized fuzzy match: leading articles
-// ("die asyl-lotterie") and hyphens hurt scoring because each token has
-// to find a hit. So we try the raw query first, then a stripped variant,
-// then the longest single keyword as a last resort.
 function searchVariants(query) {
   const variants = [];
   const push = (q) => {
-    const t = (q || '').trim();
-    if (t && !variants.includes(t)) variants.push(t);
+    const s = (q || '').trim();
+    if (s && !variants.includes(s)) variants.push(s);
   };
   push(query);
 
-  // Replace hyphens with spaces ("asyl-lotterie" -> "asyl lotterie") and
-  // collapse repeated whitespace.
   const dehyphenated = query.replace(/[-–—]+/g, ' ').replace(/\s+/g, ' ').trim();
   push(dehyphenated);
 
-  // Strip common leading articles (de + en) and try again.
   const stripped = dehyphenated.replace(
     /^(die|der|das|den|dem|des|ein|eine|einen|einem|einer|the|a|an)\s+/i,
     '',
   ).trim();
   push(stripped);
 
-  // Last resort: longest single word (≥4 chars), which is what carried
-  // the user's intent ("Lotterie" in "die Asyl-Lotterie").
   const longest = stripped.split(/\s+/)
     .filter((w) => w.length >= 4)
     .sort((a, b) => b.length - a.length)[0];
@@ -76,10 +82,6 @@ function searchVariants(query) {
   return variants;
 }
 
-// Normalize a string for fuzzy matching: lowercase, replace umlauts/ß,
-// strip everything except a-z0-9. Both the query and the title go through
-// the same pipeline so "Asyl-Lotterie" and "asyllotterie" collapse to the
-// same canonical form.
 function normalizeForMatch(s) {
   return (s || '')
     .toLowerCase()
@@ -87,10 +89,6 @@ function normalizeForMatch(s) {
     .replace(/[^a-z0-9]+/g, '');
 }
 
-// Score a candidate title against a normalized query using overlapping
-// 3-grams. Score = matched / total, in [0,1]. Substring containment also
-// gets a bonus, which catches Alexa's habit of mashing words together
-// ("asyllotterie" contained in "dieasyllotterie").
 function fuzzyScore(qNorm, titleNorm) {
   if (!qNorm || !titleNorm) return 0;
   if (titleNorm.includes(qNorm) || qNorm.includes(titleNorm)) return 1;
@@ -102,50 +100,72 @@ function fuzzyScore(qNorm, titleNorm) {
   return hits / (qNorm.length - 2);
 }
 
-// Last-resort: pull the entire library and pick the best fuzzy match
-// locally. Slower than the server search (we may pull a few hundred
-// items) but bullet-proof against Alexa's tokenization quirks.
-async function localFuzzyFindBook(client, libraryId, query) {
+async function localFuzzyFind(client, libraries, query) {
   const qNorm = normalizeForMatch(query);
   if (!qNorm || qNorm.length < 3) return null;
 
-  // For typical personal libraries (< ~1000 titles), one big page is fine.
-  const page = await client.listItems(libraryId, { limit: 1000, page: 0 });
-  const items = (page.results || page.items || page || []);
-
   let best = null;
   let bestScore = 0;
-  for (const it of items) {
-    const meta = (it.media && it.media.metadata) || it.metadata || {};
-    const candidates = [meta.title, meta.subtitle, meta.titleIgnorePrefix]
-      .filter(Boolean)
-      .map(normalizeForMatch);
-    let score = 0;
-    for (const c of candidates) {
-      score = Math.max(score, fuzzyScore(qNorm, c));
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      best = it;
+
+  for (const lib of libraries) {
+    const page = await client.listItems(lib.id, { limit: 1000, page: 0 }).catch(() => null);
+    if (!page) continue;
+    const items = (page.results || page.items || page || []);
+
+    for (const it of items) {
+      const meta = (it.media && it.media.metadata) || it.metadata || {};
+      const candidates = [meta.title, meta.subtitle, meta.titleIgnorePrefix]
+        .filter(Boolean)
+        .map(normalizeForMatch);
+      let score = 0;
+      for (const c of candidates) {
+        score = Math.max(score, fuzzyScore(qNorm, c));
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = it;
+      }
     }
   }
 
-  // Require a reasonable threshold so we don't return random hits when
-  // the user mentioned a book that isn't in the library at all.
   return bestScore >= 0.5 ? best : null;
 }
 
-async function findBook(client, libraryId, query) {
-  // Fast path: server-side search with a few query variants.
+// Find media (audiobook or podcast) across relevant libraries.
+async function findMedia(client, query, { mediaType = null } = {}) {
+  const allLibs = await getLibraries(client);
+  const targetLibs = mediaType
+    ? allLibs.filter((l) => l.mediaType === mediaType)
+    : allLibs;
+
+  if (!targetLibs.length) return null;
+
+  // 1. Fast path: Server-side search across target libraries
   for (const q of searchVariants(query)) {
-    const results = await client.search(libraryId, q, { limit: 5 });
-    const hits = (results.book || results.items || []).map((h) => h.libraryItem || h);
-    if (hits.length) return hits[0];
+    for (const lib of targetLibs) {
+      const results = await client.search(lib.id, q, { limit: 5 }).catch(() => null);
+      if (!results) continue;
+      const hits = (results.book || results.podcast || results.items || []).map((h) => h.libraryItem || h);
+      if (hits.length) return hits[0];
+    }
   }
-  // Slow path: local fuzzy match over the whole library. Catches
-  // mashed-together transcriptions like Alexa's "asyllotterie" for
-  // "Asyl-Lotterie".
-  return localFuzzyFindBook(client, libraryId, query);
+
+  // 2. Slow path: Local fuzzy search
+  return localFuzzyFind(client, targetLibs, query);
+}
+
+// Compatibility helper for existing code/tests expecting findBook
+async function findBook(client, libraryId, query) {
+  const lib = libraryId ? [{ id: libraryId, mediaType: 'book' }] : await getLibrariesByType(client, 'book');
+  for (const q of searchVariants(query)) {
+    for (const l of lib) {
+      const results = await client.search(l.id, q, { limit: 5 }).catch(() => null);
+      if (!results) continue;
+      const hits = (results.book || results.items || []).map((h) => h.libraryItem || h);
+      if (hits.length) return hits[0];
+    }
+  }
+  return localFuzzyFind(client, lib, query);
 }
 
 // Decoded AudioPlayer state from the inbound request (token + offset). Null
@@ -164,16 +184,58 @@ function currentPlaybackState(handlerInput) {
 }
 
 // Build an AudioPlayer Play directive that streams an audiobookshelf item
-// from a given book-relative offset. Optional sleepDeadline is encoded in
-// the AudioPlayer token so it survives across PlaybackNearlyFinished events.
+// (either a book or a podcast episode) from a given offset.
 async function buildPlayDirective(client, item, opts = {}) {
   const { bookOffsetSec = 0, sleepDeadline = null } = opts;
-  const session = await client.startPlaybackSession(item.id);
+  const isPodcast = item.mediaType === 'podcast' || Boolean(item.media && Array.isArray(item.media.episodes));
+
+  let session;
+  let episode = null;
+  const meta = (item.media && item.media.metadata) || {};
+  let displayTitle = meta.title || 'Audio';
+  let displaySubtitle = meta.authorName
+    || (Array.isArray(meta.authors) && meta.authors.map((a) => a.name).join(', '))
+    || '';
+
+  if (isPodcast) {
+    const episodes = (item.media && item.media.episodes) || [];
+    if (!episodes.length) throw new Error(`podcast ${item.id} has no episodes`);
+
+    if (opts.episode) {
+      episode = opts.episode;
+    } else if (opts.episodeId) {
+      episode = episodes.find((e) => e.id === opts.episodeId) || episodes[0];
+    } else if (opts.episodeQuery) {
+      episode = matchEpisode(episodes, opts.episodeQuery);
+    } else {
+      // Check if user has an in-progress episode
+      const inProg = episodes.find((e) => e.userMediaProgress && !e.userMediaProgress.isFinished && e.userMediaProgress.currentTime > 0);
+      if (inProg) {
+        episode = inProg;
+        if (opts.bookOffsetSec === undefined || opts.bookOffsetSec === 0) {
+          opts.bookOffsetSec = inProg.userMediaProgress.currentTime;
+        }
+      } else {
+        const sorted = sortEpisodes(episodes, { ascending: true });
+        episode = sorted[sorted.length - 1]; // latest episode
+      }
+    }
+
+    session = await client.startPlaybackSession(item.id, { episodeId: episode.id });
+    displayTitle = episode.title || `Episode ${episode.episode || ''}`;
+    displaySubtitle = meta.title || 'Podcast';
+  } else {
+    session = await client.startPlaybackSession(item.id);
+  }
+
   const tracks = session.audioTracks || [];
   if (!tracks.length) throw new Error(`item ${item.id} has no audio tracks`);
 
-  const bookDuration = tracks.reduce((s, x) => s + (x.duration || 0), 0);
-  const clampedOffset = Math.max(0, Math.min(bookOffsetSec, bookDuration - 1));
+  const totalDuration = isPodcast
+    ? ((episode && episode.duration) || tracks[0].duration || 0)
+    : tracks.reduce((s, x) => s + (x.duration || 0), 0);
+
+  const clampedOffset = Math.max(0, Math.min(bookOffsetSec, Math.max(0, totalDuration - 1)));
   const { trackIndex, offsetInTrack } = locateTrack(tracks, clampedOffset);
   const track = tracks[trackIndex];
   const url = client.streamUrlFor(track.contentUrl);
@@ -181,18 +243,14 @@ async function buildPlayDirective(client, item, opts = {}) {
   const tokenState = {
     sessionId: session.id,
     itemId: item.id,
+    mediaType: isPodcast ? 'podcast' : 'book',
+    episodeId: episode ? episode.id : null,
     trackIndex,
     trackCount: tracks.length,
     trackStart: bookOffsetForTrack(tracks, trackIndex),
-    bookDuration,
+    bookDuration: totalDuration,
   };
   if (sleepDeadline) tokenState.sleepDeadline = sleepDeadline;
-
-  const meta = (item.media && item.media.metadata) || {};
-  const title = meta.title || 'Audiobook';
-  const author = meta.authorName
-    || (Array.isArray(meta.authors) && meta.authors.map((a) => a.name).join(', '))
-    || '';
 
   const directive = {
     type: 'AudioPlayer.Play',
@@ -203,17 +261,68 @@ async function buildPlayDirective(client, item, opts = {}) {
         url,
         offsetInMilliseconds: Math.round(offsetInTrack * 1000),
       },
-      metadata: { title, subtitle: author },
+      metadata: { title: displayTitle, subtitle: displaySubtitle },
     },
   };
-  return { directive, title, author, session, tracks, bookDuration };
+
+  return {
+    directive,
+    title: displayTitle,
+    author: displaySubtitle,
+    itemTitle: meta.title || displayTitle,
+    session,
+    tracks,
+    bookDuration: totalDuration,
+    isPodcast,
+    episode,
+  };
 }
 
-// Build a directive that enqueues the *next* track of the same book after
-// the current one. Called from PlaybackNearlyFinished. Returns null when
-// there is no next track (book finished) or the sleep timer has fired.
+// Build a directive that enqueues the next track of a book or the next episode of a podcast.
 async function buildEnqueueNextDirective(client, prevState) {
   if (sleepDeadlineExpired(prevState)) return null;
+
+  // Podcast auto-enqueue: enqueue next chronological episode
+  if (prevState.mediaType === 'podcast' && prevState.episodeId) {
+    const item = await client.getItem(prevState.itemId);
+    const episodes = (item.media && item.media.episodes) || [];
+    const sorted = sortEpisodes(episodes, { ascending: true }); // index 0 is oldest, last is newest
+    const currentIdx = sorted.findIndex((e) => e.id === prevState.episodeId);
+    if (currentIdx === -1 || currentIdx >= sorted.length - 1) return null; // No next episode
+
+    const nextEpisode = sorted[currentIdx + 1];
+    const session = await client.startPlaybackSession(item.id, { episodeId: nextEpisode.id });
+    const tracks = session.audioTracks || [];
+    if (!tracks.length) return null;
+
+    const url = client.streamUrlFor(tracks[0].contentUrl);
+    const newTokenState = {
+      sessionId: session.id,
+      itemId: item.id,
+      mediaType: 'podcast',
+      episodeId: nextEpisode.id,
+      trackIndex: 0,
+      trackCount: tracks.length,
+      trackStart: 0,
+      bookDuration: nextEpisode.duration || tracks[0].duration || 0,
+      sleepDeadline: prevState.sleepDeadline || null,
+    };
+
+    return {
+      type: 'AudioPlayer.Play',
+      playBehavior: 'ENQUEUE',
+      audioItem: {
+        stream: {
+          token: encodeToken(newTokenState),
+          expectedPreviousToken: encodeToken(prevState),
+          url,
+          offsetInMilliseconds: 0,
+        },
+      },
+    };
+  }
+
+  // Audiobook track enqueue
   const { itemId, trackIndex, trackCount } = prevState;
   if (trackIndex == null || trackIndex >= (trackCount || 0) - 1) return null;
 
@@ -245,11 +354,11 @@ async function buildEnqueueNextDirective(client, prevState) {
   };
 }
 
-// Re-launch playback at a new book-relative offset, preserving the existing
-// sleepDeadline (if any). Used by chapter navigation, seek, and sleep timer.
+// Re-launch playback at a new offset, preserving the existing sleepDeadline (if any).
 async function relaunchAtOffset(client, current, newBookOffset, { sleepDeadline } = {}) {
   const item = await client.getItem(current.itemId);
   return buildPlayDirective(client, item, {
+    episodeId: current.episodeId || null,
     bookOffsetSec: newBookOffset,
     sleepDeadline: sleepDeadline !== undefined ? sleepDeadline : current.sleepDeadline || null,
   });
@@ -296,7 +405,7 @@ const ListLibrariesIntentHandler = {
     const client = getClient(h);
     if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
     try {
-      const { libraries = [] } = await client.listLibraries();
+      const libraries = await getLibraries(client);
       if (!libraries.length) return h.responseBuilder.speak(speak('noLibraries')).getResponse();
       return h.responseBuilder.speak(speak('libraries', libraries.map((l) => l.name))).getResponse();
     } catch (err) {
@@ -309,19 +418,27 @@ const ListLibrariesIntentHandler = {
 const RecentBooksIntentHandler = {
   canHandle(h) {
     return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
-      && Alexa.getIntentName(h.requestEnvelope) === 'RecentBooksIntent';
+      && (Alexa.getIntentName(h.requestEnvelope) === 'RecentBooksIntent'
+        || Alexa.getIntentName(h.requestEnvelope) === 'RecentMediaIntent');
   },
   async handle(h) {
     const speak = speakerOf(h);
     const client = getClient(h);
     if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
     try {
-      const libraryId = await resolveLibraryId(client);
-      const list = await client.listItems(libraryId, { limit: 5, sort: 'addedAt', desc: 1 });
-      const titles = (list.results || list.items || [])
-        .map((it) => it.media && it.media.metadata && it.media.metadata.title)
-        .filter(Boolean);
-      return h.responseBuilder.speak(speak('recentBooks', titles)).getResponse();
+      const libs = await getLibraries(client);
+      const titles = [];
+      for (const lib of libs) {
+        const list = await client.listItems(lib.id, { limit: 3, sort: 'addedAt', desc: 1 }).catch(() => null);
+        if (list) {
+          const items = (list.results || list.items || []);
+          for (const it of items) {
+            const tName = it.media && it.media.metadata && it.media.metadata.title;
+            if (tName && !titles.includes(tName)) titles.push(tName);
+          }
+        }
+      }
+      return h.responseBuilder.speak(speak('recentBooks', titles.slice(0, 5))).getResponse();
     } catch (err) {
       console.error('RecentBooksIntent error:', err);
       return h.responseBuilder.speak(speak('serverError')).getResponse();
@@ -344,11 +461,16 @@ const ListInProgressIntentHandler = {
         .filter((p) => !p.isFinished && p.currentTime > 0)
         .sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0))
         .slice(0, 5);
-      // Hydrate titles in parallel.
+
       const titles = await Promise.all(inProg.map(async (p) => {
         try {
           const it = await client.getItem(p.libraryItemId);
-          return it.media && it.media.metadata && it.media.metadata.title;
+          const metaTitle = it.media && it.media.metadata && it.media.metadata.title;
+          if (p.episodeId && it.media && Array.isArray(it.media.episodes)) {
+            const ep = it.media.episodes.find((e) => e.id === p.episodeId);
+            return ep ? `${ep.title} (${metaTitle})` : metaTitle;
+          }
+          return metaTitle;
         } catch (_) { return null; }
       }));
       return h.responseBuilder.speak(speak('inProgress', titles.filter(Boolean))).getResponse();
@@ -378,19 +500,101 @@ const PlayBookIntentHandler = {
       return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
     }
     try {
-      const libraryId = await resolveLibraryId(client);
-      const item = await findBook(client, libraryId, query);
-      if (!item) return h.responseBuilder.speak(speak('bookNotFound', query)).getResponse();
+      // Find across all libraries (books or podcasts)
+      const found = await findMedia(client, query);
+      if (!found) return h.responseBuilder.speak(speak('bookNotFound', query)).getResponse();
 
-      const fullItem = await client.getItem(item.id);
-      const progress = fullItem.userMediaProgress
-        || (fullItem.media && fullItem.media.userMediaProgress);
-      const resumeAt = progress && !progress.isFinished ? (progress.currentTime || 0) : 0;
+      const fullItem = await client.getItem(found.id);
+      const isPodcast = fullItem.mediaType === 'podcast' || Boolean(fullItem.media && Array.isArray(fullItem.media.episodes));
 
-      const { directive, title, author } = await buildPlayDirective(client, fullItem, { bookOffsetSec: resumeAt });
-      return h.responseBuilder.speak(speak('playing', title, author)).addDirective(directive).getResponse();
+      let resumeAt = 0;
+      if (!isPodcast) {
+        const progress = fullItem.userMediaProgress || (fullItem.media && fullItem.media.userMediaProgress);
+        resumeAt = progress && !progress.isFinished ? (progress.currentTime || 0) : 0;
+      }
+
+      const { directive, title, author, isPodcast: isPod } = await buildPlayDirective(client, fullItem, { bookOffsetSec: resumeAt });
+      const speechText = isPod
+        ? speak('playingPodcast', title, fullItem.media.metadata.title)
+        : speak('playing', title, author);
+
+      return h.responseBuilder.speak(speechText).addDirective(directive).getResponse();
     } catch (err) {
       console.error('PlayBookIntent error:', err);
+      return h.responseBuilder.speak(speak('serverError')).getResponse();
+    }
+  },
+};
+
+const PlayPodcastIntentHandler = {
+  canHandle(h) {
+    return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+      && Alexa.getIntentName(h.requestEnvelope) === 'PlayPodcastIntent';
+  },
+  async handle(h) {
+    const speak = speakerOf(h);
+    const client = getClient(h);
+    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+
+    const query = Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle')
+      || Alexa.getSlotValue(h.requestEnvelope, 'bookTitle');
+    if (!query) {
+      return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
+    }
+
+    try {
+      const found = await findMedia(client, query, { mediaType: 'podcast' });
+      if (!found) return h.responseBuilder.speak(speak('podcastNotFound', query)).getResponse();
+
+      const fullItem = await client.getItem(found.id);
+      const { directive, title, itemTitle } = await buildPlayDirective(client, fullItem);
+      return h.responseBuilder
+        .speak(speak('playingPodcast', title, itemTitle))
+        .addDirective(directive)
+        .getResponse();
+    } catch (err) {
+      console.error('PlayPodcastIntent error:', err);
+      return h.responseBuilder.speak(speak('serverError')).getResponse();
+    }
+  },
+};
+
+const PlayEpisodeIntentHandler = {
+  canHandle(h) {
+    return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+      && Alexa.getIntentName(h.requestEnvelope) === 'PlayEpisodeIntent';
+  },
+  async handle(h) {
+    const speak = speakerOf(h);
+    const client = getClient(h);
+    if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+
+    const podcastTitle = Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle');
+    const episodeQuery = Alexa.getSlotValue(h.requestEnvelope, 'episodeQuery')
+      || Alexa.getSlotValue(h.requestEnvelope, 'episodeNumber');
+
+    if (!podcastTitle) {
+      return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
+    }
+
+    try {
+      const found = await findMedia(client, podcastTitle, { mediaType: 'podcast' });
+      if (!found) return h.responseBuilder.speak(speak('podcastNotFound', podcastTitle)).getResponse();
+
+      const fullItem = await client.getItem(found.id);
+      const episodes = (fullItem.media && fullItem.media.episodes) || [];
+      if (!episodes.length) return h.responseBuilder.speak(speak('noEpisodes')).getResponse();
+
+      const matched = matchEpisode(episodes, episodeQuery);
+      if (!matched) return h.responseBuilder.speak(speak('episodeNotFound', episodeQuery || '', podcastTitle)).getResponse();
+
+      const { directive, title, itemTitle } = await buildPlayDirective(client, fullItem, { episode: matched });
+      return h.responseBuilder
+        .speak(speak('playingPodcast', title, itemTitle))
+        .addDirective(directive)
+        .getResponse();
+    } catch (err) {
+      console.error('PlayEpisodeIntent error:', err);
       return h.responseBuilder.speak(speak('serverError')).getResponse();
     }
   },
@@ -405,19 +609,17 @@ const ContinueListeningIntentHandler = {
   async handle(h) {
     const speak = speakerOf(h);
 
-    // If something is already playing and the user just said "resume", just
-    // continue current playback rather than restarting from progress.
     const ap = h.requestEnvelope.context && h.requestEnvelope.context.AudioPlayer;
     const intentName = Alexa.getIntentName(h.requestEnvelope);
     if (intentName === 'AMAZON.ResumeIntent' && ap && ap.playerActivity === 'PAUSED' && ap.token) {
       const state = decodeToken(ap.token);
       if (state) {
-        // The simplest "resume" is to re-play the current track at its offset.
         const client = getClient(h);
         if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
         try {
           const { directive } = await relaunchAtOffset(client, {
-            ...state, bookOffset: (state.trackStart || 0) + (ap.offsetInMilliseconds || 0) / 1000,
+            ...state,
+            bookOffset: (state.trackStart || 0) + (ap.offsetInMilliseconds || 0) / 1000,
           }, (state.trackStart || 0) + (ap.offsetInMilliseconds || 0) / 1000);
           return h.responseBuilder.addDirective(directive).getResponse();
         } catch (err) {
@@ -429,30 +631,59 @@ const ContinueListeningIntentHandler = {
     const client = getClient(h);
     if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
 
-    const query = Alexa.getSlotValue(h.requestEnvelope, 'bookTitle');
+    const query = Alexa.getSlotValue(h.requestEnvelope, 'bookTitle')
+      || Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle');
+
     try {
       let item;
+      let targetEpisodeId = null;
+      let resumeAt = 0;
+
       if (query) {
-        const libraryId = await resolveLibraryId(client);
-        const found = await findBook(client, libraryId, query);
+        const found = await findMedia(client, query);
         if (!found) return h.responseBuilder.speak(speak('bookNotFound', query)).getResponse();
         item = await client.getItem(found.id);
+
+        if (item.mediaType === 'podcast' || (item.media && Array.isArray(item.media.episodes))) {
+          // Check progress in podcast episodes
+          const me = await client.getMe();
+          const inProg = (me.mediaProgress || [])
+            .filter((p) => p.libraryItemId === item.id && !p.isFinished && p.currentTime > 0)
+            .sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0))[0];
+          if (inProg) {
+            targetEpisodeId = inProg.episodeId;
+            resumeAt = inProg.currentTime;
+          }
+        } else {
+          const progress = item.userMediaProgress || (item.media && item.media.userMediaProgress);
+          resumeAt = progress && !progress.isFinished ? (progress.currentTime || 0) : 0;
+        }
       } else {
         const me = await client.getMe();
         const inProgress = (me.mediaProgress || [])
           .filter((p) => !p.isFinished && p.currentTime > 0)
           .sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0));
+
         if (!inProgress.length) {
           return h.responseBuilder.speak(speak('nothingToResume')).getResponse();
         }
-        item = await client.getItem(inProgress[0].libraryItemId);
+
+        const top = inProgress[0];
+        item = await client.getItem(top.libraryItemId);
+        targetEpisodeId = top.episodeId || null;
+        resumeAt = top.currentTime || 0;
       }
 
-      const progress = item.userMediaProgress
-        || (item.media && item.media.userMediaProgress);
-      const resumeAt = progress && !progress.isFinished ? (progress.currentTime || 0) : 0;
-      const { directive, title, author } = await buildPlayDirective(client, item, { bookOffsetSec: resumeAt });
-      return h.responseBuilder.speak(speak('resuming', title, author)).addDirective(directive).getResponse();
+      const { directive, title, author, isPodcast, itemTitle } = await buildPlayDirective(client, item, {
+        episodeId: targetEpisodeId,
+        bookOffsetSec: resumeAt,
+      });
+
+      const speechText = isPodcast
+        ? speak('resumingPodcast', title, itemTitle)
+        : speak('resuming', title, author);
+
+      return h.responseBuilder.speak(speechText).addDirective(directive).getResponse();
     } catch (err) {
       console.error('ContinueListeningIntent error:', err);
       return h.responseBuilder.speak(speak('serverError')).getResponse();
@@ -461,7 +692,7 @@ const ContinueListeningIntentHandler = {
 };
 
 // ---------------------------------------------------------------------------
-// Intent handlers — chapter / seek navigation
+// Intent handlers — chapter / episode navigation
 // ---------------------------------------------------------------------------
 
 const NextChapterIntentHandler = {
@@ -471,6 +702,10 @@ const NextChapterIntentHandler = {
     return n === 'AMAZON.NextIntent' || n === 'NextChapterIntent';
   },
   async handle(h) {
+    const current = currentPlaybackState(h);
+    if (current && current.mediaType === 'podcast') {
+      return moveByEpisode(h, +1);
+    }
     return moveByChapter(h, +1);
   },
 };
@@ -482,9 +717,73 @@ const PreviousChapterIntentHandler = {
     return n === 'AMAZON.PreviousIntent' || n === 'PreviousChapterIntent';
   },
   async handle(h) {
+    const current = currentPlaybackState(h);
+    if (current && current.mediaType === 'podcast') {
+      return moveByEpisode(h, -1);
+    }
     return moveByChapter(h, -1);
   },
 };
+
+const NextEpisodeIntentHandler = {
+  canHandle(h) {
+    if (Alexa.getRequestType(h.requestEnvelope) !== 'IntentRequest') return false;
+    return Alexa.getIntentName(h.requestEnvelope) === 'NextEpisodeIntent';
+  },
+  async handle(h) {
+    return moveByEpisode(h, +1);
+  },
+};
+
+const PreviousEpisodeIntentHandler = {
+  canHandle(h) {
+    if (Alexa.getRequestType(h.requestEnvelope) !== 'IntentRequest') return false;
+    return Alexa.getIntentName(h.requestEnvelope) === 'PreviousEpisodeIntent';
+  },
+  async handle(h) {
+    return moveByEpisode(h, -1);
+  },
+};
+
+async function moveByEpisode(h, direction) {
+  const speak = speakerOf(h);
+  const current = currentPlaybackState(h);
+  if (!current) return h.responseBuilder.speak(speak('notPlaying')).getResponse();
+  const client = getClient(h);
+  if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
+
+  try {
+    const item = await client.getItem(current.itemId);
+    const episodes = (item.media && item.media.episodes) || [];
+    if (!episodes.length) return h.responseBuilder.speak(speak('noEpisodes')).getResponse();
+
+    const sorted = sortEpisodes(episodes, { ascending: true }); // index 0 is oldest, last is newest
+    const currentIdx = sorted.findIndex((e) => e.id === current.episodeId);
+
+    const targetIdx = currentIdx === -1 ? sorted.length - 1 : currentIdx + direction;
+    if (direction > 0 && targetIdx >= sorted.length) {
+      return h.responseBuilder.speak(speak('alreadyAtNewestEpisode')).getResponse();
+    }
+    if (direction < 0 && targetIdx < 0) {
+      return h.responseBuilder.speak(speak('alreadyAtOldestEpisode')).getResponse();
+    }
+
+    const target = sorted[targetIdx];
+    const { directive } = await buildPlayDirective(client, item, {
+      episode: target,
+      bookOffsetSec: 0,
+      sleepDeadline: current.sleepDeadline || null,
+    });
+
+    return h.responseBuilder
+      .speak(speak('movedToEpisode', target.title || `Episode ${target.episode || ''}`))
+      .addDirective(directive)
+      .getResponse();
+  } catch (err) {
+    console.error('moveByEpisode error:', err);
+    return h.responseBuilder.speak(speak('serverError')).getResponse();
+  }
+}
 
 async function moveByChapter(h, direction) {
   const speak = speakerOf(h);
@@ -517,6 +816,10 @@ async function moveByChapter(h, direction) {
     return h.responseBuilder.speak(speak('serverError')).getResponse();
   }
 }
+
+// ---------------------------------------------------------------------------
+// Intent handlers — seek
+// ---------------------------------------------------------------------------
 
 const SeekForwardIntentHandler = {
   canHandle(h) {
@@ -656,8 +959,16 @@ const PlaybackControllerHandler = {
       const { directive } = await relaunchAtOffset(client, current, current.bookOffset);
       return h.responseBuilder.addDirective(directive).getResponse();
     }
-    if (type === 'PlaybackController.NextCommandIssued') return moveByChapter(h, +1);
-    if (type === 'PlaybackController.PreviousCommandIssued') return moveByChapter(h, -1);
+    if (type === 'PlaybackController.NextCommandIssued') {
+      const current = currentPlaybackState(h);
+      if (current && current.mediaType === 'podcast') return moveByEpisode(h, +1);
+      return moveByChapter(h, +1);
+    }
+    if (type === 'PlaybackController.PreviousCommandIssued') {
+      const current = currentPlaybackState(h);
+      if (current && current.mediaType === 'podcast') return moveByEpisode(h, -1);
+      return moveByChapter(h, -1);
+    }
     return h.responseBuilder.getResponse();
   },
 };
@@ -681,7 +992,7 @@ const AudioPlayerEventHandler = {
     try { client = fromEnv(process.env); } catch (_) { /* noop */ }
 
     const offsetSec = (req.offsetInMilliseconds || 0) / 1000;
-    const bookOffset = (state.trackStart || 0) + offsetSec;
+    const currentOffset = (state.trackStart || 0) + offsetSec;
 
     try {
       if (client && state.sessionId
@@ -689,7 +1000,7 @@ const AudioPlayerEventHandler = {
           || type === 'AudioPlayer.PlaybackFinished'
           || type === 'AudioPlayer.PlaybackNearlyFinished')) {
         await client.syncSession(state.sessionId, {
-          currentTime: bookOffset,
+          currentTime: currentOffset,
           timeListened: 5,
           duration: state.bookDuration || 0,
         }).catch((e) => console.warn('session sync failed:', e.message));
@@ -697,8 +1008,6 @@ const AudioPlayerEventHandler = {
 
       if (type === 'AudioPlayer.PlaybackNearlyFinished' && client) {
         if (sleepDeadlineExpired(state)) {
-          // Don't enqueue — playback ends naturally at the end of the
-          // current track, which acts as our sleep timer cut-off.
           return h.responseBuilder.getResponse();
         }
         const next = await buildEnqueueNextDirective(client, state).catch((e) => {
@@ -736,11 +1045,15 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LaunchRequestHandler,
+    PlayPodcastIntentHandler,
+    PlayEpisodeIntentHandler,
     PlayBookIntentHandler,
     ContinueListeningIntentHandler,
     ListInProgressIntentHandler,
     ListLibrariesIntentHandler,
     RecentBooksIntentHandler,
+    NextEpisodeIntentHandler,
+    PreviousEpisodeIntentHandler,
     NextChapterIntentHandler,
     PreviousChapterIntentHandler,
     SeekForwardIntentHandler,
@@ -756,10 +1069,12 @@ exports.handler = Alexa.SkillBuilders.custom()
   .addErrorHandlers(ErrorHandler)
   .lambda();
 
-// Exported only for the smoke-test scripts under /tmp.
+// Exported for testing
 exports._internals = {
   buildPlayDirective,
   buildEnqueueNextDirective,
   relaunchAtOffset,
   currentPlaybackState,
+  findMedia,
+  getLibraries,
 };

@@ -35,6 +35,34 @@
             "ein kapitel zurück"
           ]
         },
+        {
+          "name": "NextEpisodeIntent",
+          "slots": [],
+          "samples": [
+            "nächste folge",
+            "nächste episode",
+            "eine folge weiter",
+            "eine folge vor",
+            "nächste podcastfolge",
+            "nächste podcast folge",
+            "spring zur nächsten folge",
+            "springe zur nächsten folge"
+          ]
+        },
+        {
+          "name": "PreviousEpisodeIntent",
+          "slots": [],
+          "samples": [
+            "vorherige folge",
+            "vorige folge",
+            "letzte folge",
+            "vorherige episode",
+            "eine folge zurück",
+            "spring zur vorherigen folge",
+            "springe zur vorherigen folge",
+            "vorige podcastfolge"
+          ]
+        },
         { "name": "AMAZON.LoopOnIntent", "samples": [] },
         { "name": "AMAZON.LoopOffIntent", "samples": [] },
         { "name": "AMAZON.ShuffleOnIntent", "samples": [] },
@@ -53,7 +81,42 @@
             "höre {bookTitle}",
             "lies {bookTitle} vor",
             "ich möchte {bookTitle} hören",
-            "öffne {bookTitle}"
+            "öffne {bookTitle}",
+            "spiele den podcast {bookTitle}",
+            "spiele podcast {bookTitle}"
+          ]
+        },
+        {
+          "name": "PlayPodcastIntent",
+          "slots": [
+            { "name": "podcastTitle", "type": "AMAZON.SearchQuery" }
+          ],
+          "samples": [
+            "spiele podcast {podcastTitle}",
+            "spiele den podcast {podcastTitle}",
+            "starte podcast {podcastTitle}",
+            "starte den podcast {podcastTitle}",
+            "höre podcast {podcastTitle}",
+            "öffne podcast {podcastTitle}",
+            "podcast {podcastTitle}"
+          ]
+        },
+        {
+          "name": "PlayEpisodeIntent",
+          "slots": [
+            { "name": "podcastTitle", "type": "AMAZON.SearchQuery" },
+            { "name": "episodeQuery", "type": "AMAZON.SearchQuery" }
+          ],
+          "samples": [
+            "spiele folge {episodeQuery} von {podcastTitle}",
+            "spiele folge {episodeQuery} von podcast {podcastTitle}",
+            "spiele episode {episodeQuery} von {podcastTitle}",
+            "spiele episode {episodeQuery} von podcast {podcastTitle}",
+            "spiele die neueste folge von {podcastTitle}",
+            "spiele die neueste folge von podcast {podcastTitle}",
+            "spiele die letzte folge von {podcastTitle}",
+            "spiele die aktuellste folge von {podcastTitle}",
+            "starte folge {episodeQuery} von {podcastTitle}"
           ]
         },
         {
@@ -81,6 +144,7 @@
             "welche bücher höre ich gerade",
             "was höre ich gerade",
             "meine angefangenen bücher",
+            "meine angefangenen podcasts",
             "was läuft gerade",
             "welche hörbücher habe ich angefangen"
           ]
@@ -100,6 +164,8 @@
           "samples": [
             "was sind die neuesten hörbücher",
             "neue hörbücher",
+            "neue podcasts",
+            "neue folgen",
             "zuletzt hinzugefügte hörbücher",
             "was ist neu"
           ]

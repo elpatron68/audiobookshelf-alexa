@@ -1,6 +1,6 @@
 # audiobookshelf-alexa
 
-A personal-use Alexa skill that streams audiobooks from a self-hosted
+A personal-use Alexa skill that streams **audiobooks and podcasts** from a self-hosted
 [audiobookshelf](https://www.audiobookshelf.org/) instance.
 
 It runs on AWS Lambda (Node.js 22) and uses Alexa's `AudioPlayer`
@@ -19,31 +19,29 @@ with the web/mobile apps.
 The default **invocation name** is `my audiobooks` (English) and
 `meine hörbücher` (German) — change it in
 `skill-package/interactionModels/custom/*.json` if you want
-something else, but pick a multi-word phrase that Alexa's speech
-recognition can transcribe (single English words like
-"audiobookshelf" don't work in German voice mode).
+something else (such as `meine mediathek`), but pick a multi-word phrase that Alexa's speech
+recognition can transcribe.
 
 - **Launch** — `Alexa, open my audiobooks`.
-- **Play by title** — `play <title>`. Searches the library, picks the
-  top hit, and resumes from saved progress if the book was already
-  started.
+- **Play by title** — `play <title>`. Searches both audiobook and podcast libraries,
+  picks the top hit, and resumes from saved progress if already started.
+- **Play podcasts** — `play podcast <title>`. Starts the newest or in-progress episode.
+- **Play specific episode** — `play episode <number> of <podcast>` (e.g. `play episode 5 of Tech Talk`
+  or `play the latest episode of Tech Talk`).
 - **Continue** — `continue` resumes the most recently played
-  in-progress audiobook. `continue <title>` resumes a specific one.
-- **In-progress list** — `what am I listening to?` lists the top five.
-- **Chapter navigation** — `next` jumps to the next chapter;
-  `previous` jumps to the previous. Uses audiobookshelf's
-  `media.chapters[]`, not file boundaries.
-- **Time-based seek** — `skip 30 seconds back`,
-  `skip 5 minutes forward`.
-- **Sleep timer** — `set a sleep timer for 30 minutes`. Cancel with
-  `cancel sleep timer`. The deadline is encoded in the AudioPlayer
-  token; playback stops at the end of the next track that finishes
-  after the deadline (i.e. up to one track length of overshoot — no
-  external scheduler required).
-- **Listing** — `list my libraries`, `what is new?` for recently added
-  books.
-- **Standard transport** — `pause`, `resume`, `stop`. Hardware
-  Next/Previous buttons (`PlaybackController.*`) map to chapter skip.
+  in-progress audiobook or podcast episode. `continue <title>` resumes a specific one.
+- **In-progress list** — `what am I listening to?` lists the top in-progress items (books and podcasts).
+- **Navigation (Books vs. Podcasts)**:
+  - For audiobooks: `next` / `previous` jumps chapters.
+  - For podcasts: `next` / `previous` jumps to the next or previous **episode**!
+  - Explicit intents: `next episode`, `previous episode`, `next chapter`, `previous chapter`.
+- **Time-based seek** — `skip 30 seconds back`, `skip 5 minutes forward`.
+- **Sleep timer** — `set a sleep timer for 30 minutes`. Cancel with `cancel sleep timer`.
+- **Auto-enqueue** — AudioPlayer automatically queues up the next track for books,
+  or the next chronological episode for podcasts.
+- **Listing** — `list my libraries`, `what is new?` for recently added books and podcasts.
+- **Standard transport** — `pause`, `resume`, `stop`. Hardware Next/Previous buttons
+  on Echo devices map to chapter skip for books and episode skip for podcasts.
 - **en-US and de-DE locales.**
 
 ## Prerequisites
@@ -595,7 +593,7 @@ phrases need the skill name.
 
 # Deutsche Anleitung
 
-Ein Alexa-Skill für den Privatgebrauch, der Hörbücher von einer
+Ein Alexa-Skill für den Privatgebrauch, der **Hörbücher und Podcasts** von einer
 selbst gehosteten [audiobookshelf](https://www.audiobookshelf.org/)-
 Instanz streamt.
 
@@ -608,34 +606,30 @@ synchronisiert, sodass alles mit der Web-/Mobile-App in Sync bleibt.
 
 Der Standard-**Aufrufname** ist `meine hörbücher` (Deutsch) und
 `my audiobooks` (Englisch) — änderbar in
-`skill-package/interactionModels/custom/*.json`. Wähle eine
+`skill-package/interactionModels/custom/*.json` (z. B. in `meine mediathek`). Wähle eine
 mehrwortige Phrase, die Alexas Spracherkennung sauber transkribieren
-kann (einzelne englische Wörter wie "audiobookshelf" funktionieren im
-deutschen Sprachmodus nicht).
+kann.
 
-- **Starten** — `Alexa, öffne meine hörbücher`.
-- **Spielen nach Titel** — `Spiele <Titel>`. Durchsucht die
-  Bibliothek, nimmt den besten Treffer und setzt am gespeicherten
-  Fortschritt fort, falls das Buch schon begonnen wurde.
-- **Weitermachen** — `Mache weiter` setzt das zuletzt gespielte
-  laufende Hörbuch fort. `Mache mit <Titel> weiter` setzt ein
-  bestimmtes fort.
-- **Liste laufender Bücher** — `Welche Bücher höre ich gerade?` listet
-  die fünf neuesten.
-- **Kapitelnavigation** — `Nächstes Kapitel` springt zum nächsten;
-  `voriges Kapitel` zum vorherigen. Nutzt audiobookshelfs
-  `media.chapters[]`, nicht Dateigrenzen.
-- **Zeitsprung** — `Spring 30 Sekunden zurück`,
-  `Spring 5 Minuten vor`.
-- **Sleep Timer** — `Stelle den Sleep Timer auf 30 Minuten`.
-  Beenden mit `Sleep Timer aus`. Das Ablaufdatum steckt im
-  AudioPlayer-Token; die Wiedergabe stoppt am Ende des nächsten Tracks,
-  der nach Ablauf endet (also bis zu eine Tracklänge Überlauf — kein
-  externer Scheduler nötig).
-- **Listen** — `Liste meine Bibliotheken`, `Was ist neu?` für zuletzt
-  hinzugefügte Bücher.
-- **Standard-Steuerung** — `pause`, `weiter`, `stop`. Hardware-
-  Next/Previous-Tasten (`PlaybackController.*`) springen Kapitel.
+- **Starten** — `Alexa, öffne meine hörbücher` (oder `meine mediathek`).
+- **Spielen nach Titel** — `Spiele <Titel>`. Durchsucht sowohl Hörbuch- als auch
+  Podcast-Bibliotheken und spielt den passenden Titel ab.
+- **Podcasts spielen** — `Spiele den Podcast <Titel>` (startet die neueste oder zuletzt
+  begonnene Episode).
+- **Gezielte Folge abspielen** — `Spiele Folge <Nummer> von <Podcast>` (z. B. `Spiele Folge 5 von Fest und Flauschig`
+  oder `Spiele die neueste Folge von Fest und Flauschig`).
+- **Weitermachen** — `Mache weiter` / `Weiterhören` setzt das zuletzt gehörte
+  Hörbuch oder die zuletzt gehörte Podcast-Folge exakt an der gespeicherten Position fort.
+- **Liste laufender Titel** — `Was höre ich gerade?` listet angefangene Hörbücher und Podcasts.
+- **Navigation (Hörbücher vs. Podcasts)**:
+  - Bei Hörbüchern: `Nächstes Kapitel` / `voriges Kapitel` springt Kapitel.
+  - Bei Podcasts: `Nächste Folge` / `vorherige Folge` springt zur nächsten/vorherigen **Episode**!
+  - Hardware Next/Previous-Tasten am Echo springen bei Podcasts zur Folge, bei Büchern zum Kapitel.
+- **Zeitsprung** — `Spring 30 Sekunden zurück`, `Spring 5 Minuten vor`.
+- **Sleep Timer** — `Stelle den Sleep Timer auf 30 Minuten`. Beenden mit `Sleep Timer aus`.
+- **Automatisches Fortsetzen** — Nach Ende einer Podcast-Folge wird automatisch die
+  nächste chronologische Folge eingereiht.
+- **Listen** — `Liste meine Bibliotheken`, `Was ist neu?` für zuletzt hinzugefügte Titel und Folgen.
+- **Standard-Steuerung** — `pause`, `weiter`, `stop`.
 - **de-DE und en-US.**
 
 ## Voraussetzungen

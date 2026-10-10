@@ -4,27 +4,27 @@
       "locales": {
         "de-DE": {
           "name": "Audiobookshelf",
-          "summary": "Höre Hörbücher von deinem Audiobookshelf-Server.",
-          "description": "Mit diesem Skill kannst du Hörbücher von deinem selbst gehosteten Audiobookshelf-Server auf einem Alexa-Gerät abspielen. Sage zum Beispiel \"Alexa, öffne Audiobookshelf\" und dann \"Spiele Der Herr der Ringe\" oder \"Mache weiter\", um mit dem zuletzt gehörten Hörbuch fortzufahren.\n\nDu benötigst eine eigene Audiobookshelf-Instanz, die per HTTPS aus dem Internet erreichbar ist, sowie einen API-Key. Konfiguration erfolgt über die Lambda-Umgebungsvariablen ABS_BASE_URL und ABS_API_KEY.",
+          "summary": "Höre Hörbücher und Podcasts von deinem Audiobookshelf-Server.",
+          "description": "Mit diesem Skill kannst du Hörbücher und Podcasts von deinem selbst gehosteten Audiobookshelf-Server auf einem Alexa-Gerät abspielen. Sage zum Beispiel \"Alexa, öffne Audiobookshelf\" und dann \"Spiele Der Herr der Ringe\", \"Spiele den Podcast Fest und Flauschig\" oder \"Mache weiter\", um mit dem zuletzt gehörten Titel fortzufahren.\n\nDu benötigst eine eigene Audiobookshelf-Instanz, die per HTTPS aus dem Internet erreichbar ist, sowie einen API-Key. Konfiguration erfolgt über die Lambda-Umgebungsvariablen ABS_BASE_URL und ABS_API_KEY.",
           "examplePhrases": [
             "Alexa, öffne Audiobookshelf",
-            "Alexa, sage Audiobookshelf mache weiter",
-            "Alexa, frage Audiobookshelf nach meinen Hörbüchern"
+            "Alexa, sage Audiobookshelf spiele den Podcast Fest und Flauschig",
+            "Alexa, sage Audiobookshelf mache weiter"
           ],
-          "keywords": ["Hörbuch", "Audiobookshelf", "Audiobook"],
+          "keywords": ["Hörbuch", "Podcast", "Podcasts", "Audiobookshelf", "Audiobook"],
           "smallIconUri": "",
           "largeIconUri": ""
         },
         "en-US": {
           "name": "Audiobookshelf",
-          "summary": "Listen to audiobooks from your Audiobookshelf server.",
-          "description": "Stream audiobooks from your self-hosted Audiobookshelf server on any Alexa device. Say \"Alexa, open Audiobookshelf\" and then \"play The Lord of the Rings\" or \"continue\" to resume the audiobook you were last listening to.\n\nRequires a self-hosted Audiobookshelf instance reachable over HTTPS from the public internet and an API key. Configure ABS_BASE_URL and ABS_API_KEY as Lambda environment variables.",
+          "summary": "Listen to audiobooks and podcasts from your Audiobookshelf server.",
+          "description": "Stream audiobooks and podcasts from your self-hosted Audiobookshelf server on any Alexa device. Say \"Alexa, open Audiobookshelf\" and then \"play The Lord of the Rings\", \"play podcast Tech Talk\", or \"continue\" to resume the item you were last listening to.\n\nRequires a self-hosted Audiobookshelf instance reachable over HTTPS from the public internet and an API key. Configure ABS_BASE_URL and ABS_API_KEY as Lambda environment variables.",
           "examplePhrases": [
             "Alexa, open Audiobookshelf",
-            "Alexa, ask Audiobookshelf to continue",
-            "Alexa, ask Audiobookshelf for my audiobooks"
+            "Alexa, ask Audiobookshelf to play podcast Tech Talk",
+            "Alexa, ask Audiobookshelf to continue"
           ],
-          "keywords": ["audiobook", "audiobookshelf", "books"],
+          "keywords": ["audiobook", "podcast", "podcasts", "audiobookshelf", "books"],
           "smallIconUri": "",
           "largeIconUri": ""
         }

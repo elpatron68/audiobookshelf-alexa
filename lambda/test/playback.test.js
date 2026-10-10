@@ -79,3 +79,42 @@ test('unitToSeconds parses unit slot values across locales', () => {
   assert.equal(unitToSeconds(undefined), 60);
   assert.equal(unitToSeconds('xyz'), 60);
 });
+
+test('sortEpisodes sorts chronologically', () => {
+  const { sortEpisodes } = require('../lib/playback');
+  const eps = [
+    { id: '3', publishedAt: 300, episode: '3' },
+    { id: '1', publishedAt: 100, episode: '1' },
+    { id: '2', publishedAt: 200, episode: '2' },
+  ];
+  const asc = sortEpisodes(eps, { ascending: true });
+  assert.deepEqual(asc.map((e) => e.id), ['1', '2', '3']);
+  const desc = sortEpisodes(eps, { ascending: false });
+  assert.deepEqual(desc.map((e) => e.id), ['3', '2', '1']);
+});
+
+test('parseEpisodeQuery parses digits, German word numbers, and latest keywords', () => {
+  const { parseEpisodeQuery } = require('../lib/playback');
+  assert.deepEqual(parseEpisodeQuery('neueste'), { isLatest: true });
+  assert.deepEqual(parseEpisodeQuery('die letzte folge'), { isLatest: true });
+  assert.deepEqual(parseEpisodeQuery('erste'), { isFirst: true });
+  assert.equal(parseEpisodeQuery('folge 5').episodeNumber, 5);
+  assert.equal(parseEpisodeQuery('folge fünf').episodeNumber, 5);
+  assert.equal(parseEpisodeQuery('folge zwölf').episodeNumber, 12);
+  assert.equal(parseEpisodeQuery('episode 42').episodeNumber, 42);
+});
+
+test('matchEpisode finds appropriate episode by query', () => {
+  const { matchEpisode } = require('../lib/playback');
+  const eps = [
+    { id: 'ep-1', episode: '1', title: 'Folge 1 - Intro', publishedAt: 100 },
+    { id: 'ep-2', episode: '2', title: 'Folge 2 - Deep Dive', publishedAt: 200 },
+    { id: 'ep-3', episode: '3', title: 'Folge 3 - Finale', publishedAt: 300 },
+  ];
+  assert.equal(matchEpisode(eps, 'neueste').id, 'ep-3');
+  assert.equal(matchEpisode(eps, 'erste').id, 'ep-1');
+  assert.equal(matchEpisode(eps, 'folge 2').id, 'ep-2');
+  assert.equal(matchEpisode(eps, 'zwei').id, 'ep-2');
+  assert.equal(matchEpisode(eps, 'Deep Dive').id, 'ep-2');
+  assert.equal(matchEpisode(eps, null).id, 'ep-3'); // default is latest
+});
