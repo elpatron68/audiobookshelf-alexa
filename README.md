@@ -1199,3 +1199,7 @@ Manueller Start der Pipeline via CLI:
 gh workflow run deploy.yml
 gh run watch
 ```
+
+## Lizenz
+
+Dieses Projekt ist unter der [MIT-Lizenz](LICENSE.md) lizenziert.

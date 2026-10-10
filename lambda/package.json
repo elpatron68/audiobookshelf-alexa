@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "AWS Lambda backend for the Audiobookshelf Alexa skill",
   "main": "index.js",
+  "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=20"
