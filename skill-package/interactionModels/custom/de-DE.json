@@ -81,7 +81,6 @@
             "höre {bookTitle}",
             "lies {bookTitle} vor",
             "ich möchte {bookTitle} hören",
-            "öffne {bookTitle}",
             "spiele den podcast {bookTitle}",
             "spiele podcast {bookTitle}"
           ]
@@ -97,7 +96,6 @@
             "starte podcast {podcastTitle}",
             "starte den podcast {podcastTitle}",
             "höre podcast {podcastTitle}",
-            "öffne podcast {podcastTitle}",
             "podcast {podcastTitle}"
           ]
         },
@@ -145,8 +143,17 @@
             "wo ich aufgehört habe",
             "höre da weiter wo ich aufgehört habe",
             "mache mit {bookTitle} weiter",
+            "mache mit dem podcast {bookTitle} weiter",
+            "mache mit podcast {bookTitle} weiter",
             "höre {bookTitle} weiter",
-            "setze {bookTitle} fort"
+            "höre den podcast {bookTitle} weiter",
+            "höre podcast {bookTitle} weiter",
+            "setze {bookTitle} fort",
+            "setze den podcast {bookTitle} fort",
+            "setze podcast {bookTitle} fort",
+            "setze meinen podcast fort",
+            "podcast fortsetzen",
+            "hörbuch fortsetzen"
           ]
         },
         {
