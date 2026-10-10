@@ -9,6 +9,10 @@ Playback progress is synced back to audiobookshelf so it stays in sync
 with the web/mobile apps.
 
 > 🇩🇪 **Deutsche Version weiter unten** — siehe [Deutsche Anleitung](#deutsche-anleitung).
+>
+> 📄 **Command Cheat Sheets / Spickzettel (PDF):**
+> - 🇩🇪 [Deutsche Sprachbefehle (PDF)](abs-commands_de.pdf) | [Markdown](abs-commands.md)
+> - 🇬🇧 [English Voice Commands (PDF)](abs-commands_en.pdf) | [Markdown](abs-commands.md)
 
 ---
 
@@ -527,6 +531,8 @@ c.listLibraries().then((r) => console.log(JSON.stringify(r, null, 2)));
 
 ## Voice-command cheat sheet
 
+> 📄 **Printable PDF Cheat Sheet:** [abs-commands_en.pdf](abs-commands_en.pdf) *(German version: [abs-commands_de.pdf](abs-commands_de.pdf))*
+
 Alexa treats commands differently depending on whether your skill
 is in an **active session** (you just said "open my audiobooks"
 and Alexa is listening for follow-ups) or **AudioPlayer mode** (a
@@ -603,6 +609,8 @@ zu streamen. Der Wiedergabefortschritt wird zurück an audiobookshelf
 synchronisiert, sodass alles mit der Web-/Mobile-App in Sync bleibt.
 
 ## Aufrufname & Sprachbefehle
+
+> 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*
 
 Der Standard-**Aufrufname** ist **`Audiobook Shelf`** (z. B. *„Alexa, öffne Audiobook Shelf“* — englisch gesprochen, als zwei Wörter getrennt).
 
@@ -1091,6 +1099,8 @@ c.listLibraries().then((r) => console.log(JSON.stringify(r, null, 2)));
 ```
 
 ## Sprachbefehl-Spickzettel
+
+> 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*
 
 Alexa behandelt Befehle unterschiedlich, je nachdem, ob dein Skill in
 einer **aktiven Session** ist (du hast gerade "öffne meine hörbücher"
