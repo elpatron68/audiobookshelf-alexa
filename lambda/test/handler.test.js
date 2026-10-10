@@ -621,3 +621,52 @@ test('buildPlayDirective throws NO_AUDIO for non-playable items', async () => {
   delete FIXTURE.items['item-only-ebook'];
 });
 
+test('isPlayableMedia correctly identifies podcasts with and without episodes', () => {
+  const { isPlayableMedia } = require('../index')._internals;
+  assert.equal(isPlayableMedia({ mediaType: 'podcast', media: { episodes: [] } }), false);
+  assert.equal(isPlayableMedia({ mediaType: 'podcast', media: { numEpisodes: 0 } }), false);
+  assert.equal(isPlayableMedia({ mediaType: 'podcast', media: { episodes: [{ id: 'ep-1' }] } }), true);
+});
+
+test('ContinueListeningIntent skips empty podcasts in progress and resumes next playable item', async () => {
+  FIXTURE.items['item-empty-pod'] = {
+    id: 'item-empty-pod',
+    mediaType: 'podcast',
+    media: {
+      metadata: { title: 'Empty Podcast', author: 'Podcaster' },
+      episodes: [],
+      numEpisodes: 0,
+    },
+  };
+
+  const origProgress = [...FIXTURE.me.mediaProgress];
+  FIXTURE.me.mediaProgress = [
+    {
+      id: 'prog-empty-pod',
+      libraryItemId: 'item-empty-pod',
+      currentTime: 50,
+      duration: 300,
+      isFinished: false,
+      lastUpdate: 2_000_000_000_000,
+    },
+    {
+      id: 'prog-hobbit',
+      libraryItemId: 'item-A',
+      currentTime: 70,
+      duration: 180,
+      isFinished: false,
+      lastUpdate: 1_900_000_000_000,
+    },
+  ];
+
+  try {
+    const res = await invoke(handler, intent('ContinueListeningIntent'));
+    assert.match(speech(res), /The Hobbit/);
+    const tok = decodeToken(playDirective(res).audioItem.stream.token);
+    assert.equal(tok.itemId, 'item-A');
+  } finally {
+    FIXTURE.me.mediaProgress = origProgress;
+    delete FIXTURE.items['item-empty-pod'];
+  }
+});
+

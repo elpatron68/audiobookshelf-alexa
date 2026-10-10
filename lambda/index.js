@@ -133,7 +133,12 @@ function fuzzyScore(qNorm, titleNorm) {
 function isPlayableMedia(it) {
   if (!it) return false;
   const m = it.media || it;
-  if (it.mediaType === 'podcast' || m.mediaType === 'podcast') return true;
+  if (it.mediaType === 'podcast' || m.mediaType === 'podcast') {
+    if (Array.isArray(m.episodes)) return m.episodes.length > 0;
+    if (typeof m.numEpisodes === 'number') return m.numEpisodes > 0;
+    if (typeof it.numEpisodes === 'number') return it.numEpisodes > 0;
+    return true;
+  }
   if (Array.isArray(m.episodes) && m.episodes.length > 0) return true;
   if ((it.numAudioFiles || 0) > 0 || (it.numTracks || 0) > 0) return true;
   if ((m.numAudioFiles || 0) > 0 || (m.numTracks || 0) > 0) return true;
@@ -256,7 +261,11 @@ async function buildPlayDirective(client, item, opts = {}) {
 
   if (isPodcast) {
     const episodes = (item.media && item.media.episodes) || [];
-    if (!episodes.length) throw new Error(`podcast ${item.id} has no episodes`);
+    if (!episodes.length) {
+      const err = new Error(`podcast ${item.id} has no episodes`);
+      err.code = 'NO_AUDIO';
+      throw err;
+    }
 
     if (opts.episode) {
       episode = opts.episode;
@@ -804,6 +813,10 @@ const ContinueListeningIntentHandler = {
           try {
             const candidate = await client.getItem(prog.libraryItemId);
             if (isPlayableMedia(candidate)) {
+              if (candidate.mediaType === 'podcast' || (candidate.media && candidate.media.episodes)) {
+                const eps = (candidate.media && candidate.media.episodes) || [];
+                if (!eps.length) continue;
+              }
               item = candidate;
               targetEpisodeId = prog.episodeId || null;
               resumeAt = prog.currentTime || 0;
