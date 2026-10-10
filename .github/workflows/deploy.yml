@@ -140,13 +140,13 @@ jobs:
             local exit_code=$?
             if [ $exit_code -ne 0 ]; then
               if echo "$out" | grep -qiE "(status code 403|403 Forbidden|RESOURCE_LOCKED)"; then
-                echo "Notice: Skill is currently locked by Amazon (e.g. in certification review). Skipping deployment."
+                echo "Notice: Skill is currently locked by Amazon (in certification review). Skipping deployment."
                 echo "skill_locked=true" >> "$GITHUB_OUTPUT"
-                return 403
+                exit 0
               fi
               echo "Error executing SMAPI: $*"
               echo "$out"
-              return $exit_code
+              exit $exit_code
             fi
             echo "$out"
             return 0
@@ -154,24 +154,16 @@ jobs:
 
           run_smapi "Updating German interaction model (de-DE)" \
             ask smapi set-interaction-model -s "$SKILL_ID" -g development -l de-DE --interaction-model "file:skill-package/interactionModels/custom/de-DE.json"
-          res=$?
-          if [ $res -eq 403 ]; then exit 0; elif [ $res -ne 0 ]; then exit $res; fi
 
           run_smapi "Updating English interaction model (en-US)" \
             ask smapi set-interaction-model -s "$SKILL_ID" -g development -l en-US --interaction-model "file:skill-package/interactionModels/custom/en-US.json"
-          res=$?
-          if [ $res -eq 403 ]; then exit 0; elif [ $res -ne 0 ]; then exit $res; fi
 
           run_smapi "Updating Skill manifest (skill.json)" \
             ask smapi update-skill-manifest -s "$SKILL_ID" -g development --manifest "file:skill-package/skill.json"
-          res=$?
-          if [ $res -eq 403 ]; then exit 0; elif [ $res -ne 0 ]; then exit $res; fi
 
           if [ -f "skill-package/account-linking.json" ]; then
             run_smapi "Updating Account Linking configuration (account-linking.json)" \
               ask smapi update-account-linking-info -s "$SKILL_ID" -g development --account-linking-request "file:skill-package/account-linking.json"
-            res=$?
-            if [ $res -eq 403 ]; then exit 0; elif [ $res -ne 0 ]; then exit $res; fi
           fi
 
       - name: Wait for model build
