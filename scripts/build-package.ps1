@@ -94,12 +94,38 @@ try {
         Remove-Item $testFolderInTemp -Recurse -Force
     }
 
-    Write-Host "`n[4/4] Creating ZIP package at $zipPath..." -ForegroundColor Yellow
-    if (Test-Path $zipPath) {
-        Remove-Item $zipPath -Force
-    }
+    Write-Host "`n[4/4] Creating ZIP package..." -ForegroundColor Yellow
+    $tempZip = Join-Path ([System.IO.Path]::GetTempPath()) ("abs-pkg-" + [System.Guid]::NewGuid().ToString("N") + ".zip")
+    Compress-Archive -Path (Join-Path $tempDir "*") -DestinationPath $tempZip -Force
 
-    Compress-Archive -Path (Join-Path $tempDir "*") -DestinationPath $zipPath -Force
+    # Move to target with retry logic in case of transient file locks (antivirus, indexer, explorer)
+    $maxAttempts = 5
+    $attempt = 0
+    $success = $false
+    while (-not $success -and $attempt -lt $maxAttempts) {
+        $attempt++
+        try {
+            if (Test-Path $zipPath) {
+                Remove-Item $zipPath -Force -ErrorAction Stop
+            }
+            Move-Item -Path $tempZip -Destination $zipPath -Force -ErrorAction Stop
+            $success = $true
+        } catch {
+            if ($attempt -lt $maxAttempts) {
+                Write-Host "--> Target '$zipPath' temporarily in use. Retrying in 1s ($attempt/$maxAttempts)..." -ForegroundColor DarkYellow
+                Start-Sleep -Seconds 1
+            } else {
+                # Fallback: if destination zip is locked by an open process, save under timestamped name
+                $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+                $altZipPath = Join-Path $repoRoot "audiobookshelf-alexa-$timestamp.zip"
+                Copy-Item -Path $tempZip -Destination $altZipPath -Force
+                Write-Warning "Could not overwrite '$zipPath' because another process has it open."
+                Write-Host "--> Saved package to alternative file: $altZipPath" -ForegroundColor Cyan
+                $zipPath = $altZipPath
+                $success = $true
+            }
+        }
+    }
 
     $zipItem = Get-Item $zipPath
     $sizeKb = [Math]::Round($zipItem.Length / 1KB, 2)
@@ -115,5 +141,8 @@ try {
 finally {
     if (Test-Path $tempDir) {
         Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    if ($tempZip -and (Test-Path $tempZip)) {
+        Remove-Item $tempZip -Force -ErrorAction SilentlyContinue
     }
 }
