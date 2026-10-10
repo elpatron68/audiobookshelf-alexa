@@ -94,15 +94,15 @@ Für diese Befehle muss der Skill-Name nicht genannt werden:
 
 ## 🇺🇸 English (en-US)
 
-The skill responds to the invocation name **„Audiobookshelf“** or **„Audio Shelf“**.
+The skill responds to the invocation name **„my bookshelf“** (e.g. *"Alexa, open my bookshelf"*).
 
 ### 1. Launch & Resuming
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Open skill / Welcome** | • "Alexa, open Audiobookshelf"<br>• "Alexa, start Audio Shelf" |
-| **Resume last played**<br>*(Resumes whichever audiobook or podcast you listened to last)* | • "Alexa, ask Audiobookshelf to continue"<br>• "Alexa, ask Audiobookshelf to resume listening"<br>• "Alexa, ask Audiobookshelf to pick up where I left off"<br>• "Alexa, tell Audiobookshelf keep listening" |
-| **Resume specific title** | • "Alexa, ask Audiobookshelf to continue *[Title]*"<br>• "Alexa, ask Audiobookshelf to resume *[Title]*"<br>• "Alexa, ask Audiobookshelf to keep listening to *[Title]*" |
+| **Open skill / Welcome** | • "Alexa, open my bookshelf"<br>• "Alexa, start my bookshelf" |
+| **Resume last played**<br>*(Resumes whichever audiobook or podcast you listened to last)* | • "Alexa, ask my bookshelf to continue"<br>• "Alexa, ask my bookshelf to resume listening"<br>• "Alexa, ask my bookshelf to pick up where I left off"<br>• "Alexa, tell my bookshelf keep listening" |
+| **Resume specific title** | • "Alexa, ask my bookshelf to continue *[Title]*"<br>• "Alexa, ask my bookshelf to resume *[Title]*"<br>• "Alexa, ask my bookshelf to keep listening to *[Title]*" |
 
 ---
 
@@ -110,7 +110,7 @@ The skill responds to the invocation name **„Audiobookshelf“** or **„Audio
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Play audiobook by title**<br>*(Starts from the beginning or resumes saved server progress)* | • "Alexa, ask Audiobookshelf to play *[Book Title]*"<br>• "Alexa, ask Audiobookshelf to play the audiobook *[Book Title]*"<br>• "Alexa, ask Audiobookshelf to start *[Book Title]*"<br>• "Alexa, ask Audiobookshelf to read *[Book Title]*"<br>• "Alexa, ask Audiobookshelf I want to listen to *[Book Title]*" |
+| **Play audiobook by title**<br>*(Starts from the beginning or resumes saved server progress)* | • "Alexa, ask my bookshelf to play *[Book Title]*"<br>• "Alexa, ask my bookshelf to play the audiobook *[Book Title]*"<br>• "Alexa, ask my bookshelf to start *[Book Title]*"<br>• "Alexa, ask my bookshelf to read *[Book Title]*"<br>• "Alexa, ask my bookshelf I want to listen to *[Book Title]*" |
 
 ---
 
@@ -118,11 +118,11 @@ The skill responds to the invocation name **„Audiobookshelf“** or **„Audio
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Start podcast**<br>*(Plays latest or currently in-progress episode)* | • "Alexa, ask Audiobookshelf to play podcast *[Podcast Title]*"<br>• "Alexa, ask Audiobookshelf to play the podcast *[Podcast Title]*"<br>• "Alexa, ask Audiobookshelf to start podcast *[Podcast Title]*" |
-| **Play specific episode by number** | • "Alexa, ask Audiobookshelf to play episode *5* of *[Podcast Title]*"<br>• "Alexa, ask Audiobookshelf to play episode number *12* of *[Podcast Title]*" |
-| **Play newest or first episode** | • "Alexa, ask Audiobookshelf to play the latest episode of *[Podcast Title]*"<br>• "Alexa, ask Audiobookshelf to play the newest episode of *[Podcast Title]*"<br>• "Alexa, ask Audiobookshelf to play the first episode of *[Podcast Title]*"<br>• "Alexa, ask Audiobookshelf to play the oldest episode of *[Podcast Title]*" |
-| **Next episode** | • "Alexa, ask Audiobookshelf next episode"<br>• "Alexa, ask Audiobookshelf skip to next episode"<br>• "Alexa, ask Audiobookshelf one episode forward" |
-| **Previous episode** | • "Alexa, ask Audiobookshelf previous episode"<br>• "Alexa, ask Audiobookshelf go back an episode"<br>• "Alexa, ask Audiobookshelf one episode back" |
+| **Start podcast**<br>*(Plays latest or currently in-progress episode)* | • "Alexa, ask my bookshelf to play podcast *[Podcast Title]*"<br>• "Alexa, ask my bookshelf to play the podcast *[Podcast Title]*"<br>• "Alexa, ask my bookshelf to start podcast *[Podcast Title]*" |
+| **Play specific episode by number** | • "Alexa, ask my bookshelf to play episode *5* of *[Podcast Title]*"<br>• "Alexa, ask my bookshelf to play episode number *12* of *[Podcast Title]*" |
+| **Play newest or first episode** | • "Alexa, ask my bookshelf to play the latest episode of *[Podcast Title]*"<br>• "Alexa, ask my bookshelf to play the newest episode of *[Podcast Title]*"<br>• "Alexa, ask my bookshelf to play the first episode of *[Podcast Title]*"<br>• "Alexa, ask my bookshelf to play the oldest episode of *[Podcast Title]*" |
+| **Next episode** | • "Alexa, ask my bookshelf next episode"<br>• "Alexa, ask my bookshelf skip to next episode"<br>• "Alexa, ask my bookshelf one episode forward" |
+| **Previous episode** | • "Alexa, ask my bookshelf previous episode"<br>• "Alexa, ask my bookshelf go back an episode"<br>• "Alexa, ask my bookshelf one episode back" |
 
 ---
 
@@ -130,8 +130,8 @@ The skill responds to the invocation name **„Audiobookshelf“** or **„Audio
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Next chapter** | • "Alexa, ask Audiobookshelf next chapter"<br>• "Alexa, ask Audiobookshelf skip to next chapter"<br>• "Alexa, ask Audiobookshelf one chapter forward" |
-| **Previous chapter** | • "Alexa, ask Audiobookshelf previous chapter"<br>• "Alexa, ask Audiobookshelf go back a chapter"<br>• "Alexa, ask Audiobookshelf one chapter back" |
+| **Next chapter** | • "Alexa, ask my bookshelf next chapter"<br>• "Alexa, ask my bookshelf skip to next chapter"<br>• "Alexa, ask my bookshelf one chapter forward" |
+| **Previous chapter** | • "Alexa, ask my bookshelf previous chapter"<br>• "Alexa, ask my bookshelf go back a chapter"<br>• "Alexa, ask my bookshelf one chapter back" |
 
 ---
 
@@ -139,8 +139,8 @@ The skill responds to the invocation name **„Audiobookshelf“** or **„Audio
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Fast forward** | • "Alexa, ask Audiobookshelf skip *30 seconds* forward"<br>• "Alexa, ask Audiobookshelf fast forward *2 minutes*"<br>• "Alexa, ask Audiobookshelf jump *1 minute* forward" |
-| **Rewind** | • "Alexa, ask Audiobookshelf skip *30 seconds* back"<br>• "Alexa, ask Audiobookshelf rewind *2 minutes*"<br>• "Alexa, ask Audiobookshelf jump *45 seconds* back" |
+| **Fast forward** | • "Alexa, ask my bookshelf skip *30 seconds* forward"<br>• "Alexa, ask my bookshelf fast forward *2 minutes*"<br>• "Alexa, ask my bookshelf jump *1 minute* forward" |
+| **Rewind** | • "Alexa, ask my bookshelf skip *30 seconds* back"<br>• "Alexa, ask my bookshelf rewind *2 minutes*"<br>• "Alexa, ask my bookshelf jump *45 seconds* back" |
 
 ---
 
@@ -148,8 +148,8 @@ The skill responds to the invocation name **„Audiobookshelf“** or **„Audio
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Set sleep timer**<br>*(Stops gracefully after the track finishes following the deadline)* | • "Alexa, ask Audiobookshelf to set a sleep timer for *30 minutes*"<br>• "Alexa, ask Audiobookshelf to turn off in *15 minutes*"<br>• "Alexa, ask Audiobookshelf to stop in *45 minutes*" |
-| **Cancel sleep timer** | • "Alexa, ask Audiobookshelf cancel sleep timer"<br>• "Alexa, ask Audiobookshelf turn off sleep timer" |
+| **Set sleep timer**<br>*(Stops gracefully after the track finishes following the deadline)* | • "Alexa, ask my bookshelf to set a sleep timer for *30 minutes*"<br>• "Alexa, ask my bookshelf to turn off in *15 minutes*"<br>• "Alexa, ask my bookshelf to stop in *45 minutes*" |
+| **Cancel sleep timer** | • "Alexa, ask my bookshelf cancel sleep timer"<br>• "Alexa, ask my bookshelf turn off sleep timer" |
 
 ---
 
@@ -157,9 +157,9 @@ The skill responds to the invocation name **„Audiobookshelf“** or **„Audio
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **In-progress media** | • "Alexa, ask Audiobookshelf what am I listening to"<br>• "Alexa, ask Audiobookshelf my in progress books"<br>• "Alexa, ask Audiobookshelf my in progress podcasts" |
-| **Recently added** | • "Alexa, ask Audiobookshelf what is new"<br>• "Alexa, ask Audiobookshelf what are the latest audiobooks"<br>• "Alexa, ask Audiobookshelf new podcasts" |
-| **List libraries** | • "Alexa, ask Audiobookshelf list my libraries"<br>• "Alexa, ask Audiobookshelf show my libraries" |
+| **In-progress media** | • "Alexa, ask my bookshelf what am I listening to"<br>• "Alexa, ask my bookshelf my in progress books"<br>• "Alexa, ask my bookshelf my in progress podcasts" |
+| **Recently added** | • "Alexa, ask my bookshelf what is new"<br>• "Alexa, ask my bookshelf what are the latest audiobooks"<br>• "Alexa, ask my bookshelf new podcasts" |
+| **List libraries** | • "Alexa, ask my bookshelf list my libraries"<br>• "Alexa, ask my bookshelf show my libraries" |
 
 ---
 

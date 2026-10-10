@@ -22,11 +22,11 @@
           "smallIconUri": "https://raw.githubusercontent.com/elpatron68/audiobookshelf-alexa/main/skill-package/assets/images/icon_108.png",
           "largeIconUri": "https://raw.githubusercontent.com/elpatron68/audiobookshelf-alexa/main/skill-package/assets/images/icon_512.png",
           "examplePhrases": [
-            "open Audio Shelf",
-            "ask Audio Shelf to resume",
-            "ask Audio Shelf to play Tech Talk"
+            "open my bookshelf",
+            "ask my bookshelf to resume",
+            "ask my bookshelf to play Tech Talk"
           ],
-          "keywords": ["Audiobook", "Audiobooks", "Podcast", "Podcasts", "Audiobookshelf"]
+          "keywords": ["Audiobook", "Audiobooks", "Podcast", "Podcasts", "Audiobookshelf", "Bookshelf"]
         }
       },
       "isAvailableWorldwide": true,
