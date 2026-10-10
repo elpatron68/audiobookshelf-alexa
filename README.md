@@ -564,9 +564,12 @@ phrases need the skill name.
 
 ## Limitations / known gaps
 
-- **Personal use only.** There is no account linking; the same
-  `ABS_API_KEY` is used for every invocation. Don't publish this skill
-  on the public Alexa store as-is.
+- **Multi-user & Account Linking.** The skill supports official Alexa
+  Account Linking (OAuth2). Each user can securely connect their own
+  audiobookshelf server and API key via the Alexa App (encrypted using
+  AES-256-GCM). For private self-hosting, Lambda environment variables
+  (`ABS_BASE_URL` and `ABS_API_KEY` with `ALLOW_ENV_FALLBACK=true`) can still
+  be used as a zero-config fallback.
 - **Search is best-effort.** The skill first tries audiobookshelf's
   server-side search with several query variants (raw, dehyphenated,
   article-stripped, longest-keyword) and falls back to a local
@@ -1133,9 +1136,13 @@ Skill-Namen.
 
 ## Einschränkungen / bekannte Lücken
 
-- **Nur für Privatgebrauch.** Kein Account-Linking; derselbe
-  `ABS_API_KEY` wird für jede Anfrage verwendet. Diesen Skill nicht
-  unverändert im öffentlichen Alexa-Store veröffentlichen.
+- **Multi-User & Account-Linking.** Der Skill unterstützt vollständiges
+  Alexa Account-Linking (OAuth2). Jeder Nutzer kann seinen eigenen
+  audiobookshelf-Server und API-Key sicher über die Alexa-App verknüpfen
+  (verschlüsselt mit AES-256-GCM). Für den privaten Betrieb können
+  alternativ weiterhin Lambda-Umgebungsvariablen (`ABS_BASE_URL` und
+  `ABS_API_KEY` mit `ALLOW_ENV_FALLBACK=true`) als Direktkonfiguration
+  genutzt werden.
 - **Suche ist Best-Effort.** Der Skill probiert zuerst die
   serverseitige audiobookshelf-Suche mit mehreren Query-Varianten
   (roh, ohne Bindestriche, ohne Artikel, längstes Schlagwort) und
@@ -1171,7 +1178,7 @@ Skill-Namen.
 
 Das Repository verfügt über eine automatisierte CI/CD-Pipeline unter [deploy.yml](file:///.github/workflows/deploy.yml):
 
-* **CI (`test`)**: Führt bei jedem Push und Pull Request die komplette Testsuite (55 Unit Tests) aus und validiert alle JSON-Konfigurationen und Sprachmodelle.
+* **CI (`test`)**: Führt bei jedem Push und Pull Request die komplette Testsuite (68 Unit Tests) aus und validiert alle JSON-Konfigurationen und Sprachmodelle.
 * **CD (`deploy-lambda`)**: Bei jedem Push auf den `main`-Branch wird der Lambda-Code automatisch verpackt, nach AWS hochgeladen und aktualisiert.
 * **CD (`deploy-skill`)**: Aktualisiert parallel die Alexa-Sprachmodelle (`de-DE`, `en-US`) und das Manifest direkt bei Amazon via ASK CLI / SMAPI.
 
