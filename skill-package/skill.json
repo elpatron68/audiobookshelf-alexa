@@ -3,42 +3,25 @@
     "publishingInformation": {
       "locales": {
         "de-DE": {
-          "name": "Audiobookshelf",
+          "name": "audiobookshelf-alexa",
           "summary": "Höre Hörbücher und Podcasts von deinem Audiobookshelf-Server.",
-          "description": "Mit diesem Skill kannst du Hörbücher und Podcasts von deinem selbst gehosteten Audiobookshelf-Server auf einem Alexa-Gerät abspielen. Sage zum Beispiel \"Alexa, öffne Audiobookshelf\" und dann \"Spiele Der Herr der Ringe\", \"Spiele den Podcast Fest und Flauschig\" oder \"Mache weiter\", um mit dem zuletzt gehörten Titel fortzufahren.\n\nDu benötigst eine eigene Audiobookshelf-Instanz, die per HTTPS aus dem Internet erreichbar ist, sowie einen API-Key. Konfiguration erfolgt über die Lambda-Umgebungsvariablen ABS_BASE_URL und ABS_API_KEY.",
+          "description": "Mit diesem Skill kannst du Hörbücher und Podcasts von deinem selbst gehosteten Audiobookshelf-Server auf einem Alexa-Gerät abspielen. Sage zum Beispiel 'Alexa, öffne Audiobookshelf' oder 'Alexa, sage Audiobookshelf spiele den Podcast Fest und Flauschig'.",
           "examplePhrases": [
             "Alexa, öffne Audiobookshelf",
             "Alexa, sage Audiobookshelf spiele den Podcast Fest und Flauschig",
             "Alexa, sage Audiobookshelf mache weiter"
           ],
-          "keywords": ["Hörbuch", "Podcast", "Podcasts", "Audiobookshelf", "Audiobook"],
-          "smallIconUri": "",
-          "largeIconUri": ""
-        },
-        "en-US": {
-          "name": "Audiobookshelf",
-          "summary": "Listen to audiobooks and podcasts from your Audiobookshelf server.",
-          "description": "Stream audiobooks and podcasts from your self-hosted Audiobookshelf server on any Alexa device. Say \"Alexa, open Audiobookshelf\" and then \"play The Lord of the Rings\", \"play podcast Tech Talk\", or \"continue\" to resume the item you were last listening to.\n\nRequires a self-hosted Audiobookshelf instance reachable over HTTPS from the public internet and an API key. Configure ABS_BASE_URL and ABS_API_KEY as Lambda environment variables.",
-          "examplePhrases": [
-            "Alexa, open Audiobookshelf",
-            "Alexa, ask Audiobookshelf to play podcast Tech Talk",
-            "Alexa, ask Audiobookshelf to continue"
-          ],
-          "keywords": ["audiobook", "podcast", "podcasts", "audiobookshelf", "books"],
-          "smallIconUri": "",
-          "largeIconUri": ""
+          "keywords": ["Hörbuch", "Podcast", "Podcasts", "Audiobookshelf", "Audiobook"]
         }
       },
-      "isAvailableWorldwide": false,
-      "testingInstructions": "Personal-use skill. Configure Lambda environment variables ABS_BASE_URL and ABS_API_KEY pointing at the developer's own Audiobookshelf instance.",
-      "category": "MUSIC_AND_AUDIO",
-      "distributionCountries": ["DE", "US"]
+      "isAvailableWorldwide": true,
+      "testingInstructions": "Personal-use skill.",
+      "category": "STREAMING_SERVICE"
     },
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "arn:aws:lambda:us-east-1:397379264657:function:audiobookshelf-alexa",
-          "sslCertificateType": "Trusted"
+          "uri": "arn:aws:lambda:us-east-1:397379264657:function:audiobookshelf-alexa"
         },
         "interfaces": [
           {
@@ -47,23 +30,6 @@
         ]
       }
     },
-    "manifestVersion": "1.0",
-    "privacyAndCompliance": {
-      "allowsPurchases": false,
-      "usesPersonalInfo": false,
-      "isChildDirected": false,
-      "isExportCompliant": true,
-      "containsAds": false,
-      "locales": {
-        "de-DE": {
-          "privacyPolicyUrl": "",
-          "termsOfUseUrl": ""
-        },
-        "en-US": {
-          "privacyPolicyUrl": "",
-          "termsOfUseUrl": ""
-        }
-      }
-    }
+    "manifestVersion": "1.0"
   }
 }

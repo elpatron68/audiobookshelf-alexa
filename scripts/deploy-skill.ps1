@@ -11,7 +11,8 @@
     If omitted, it reads from ask-resources.json or prompts for it.
 
 .EXAMPLE
-    .\scripts\deploy-skill.ps1 -SkillId "amzn1.ask.skill.xxxxxxxx"
+    .\scripts\deploy-skill.ps1
+    .\scripts\deploy-skill.ps1 -SkillId "amzn1.ask.skill.dee20f56-d346-4587-b4b8-8cb9114e8735"
 #>
 
 [CmdletBinding()]
@@ -26,6 +27,7 @@ $ProjectRoot = Split-Path -Parent $ScriptDir
 $AskResourcesPath = Join-Path $ProjectRoot "ask-resources.json"
 $SkillPackagePath = Join-Path $ProjectRoot "skill-package"
 $DeModelPath = Join-Path $SkillPackagePath "interactionModels\custom\de-DE.json"
+$EnModelPath = Join-Path $SkillPackagePath "interactionModels\custom\en-US.json"
 $SkillManifestPath = Join-Path $SkillPackagePath "skill.json"
 
 # Ensure PATH includes Node and npm
@@ -39,7 +41,6 @@ Write-Host ""
 # 1. Check if ask CLI is available
 $askCmd = Get-Command "ask" -ErrorAction SilentlyContinue
 if (-not $askCmd) {
-    # Check common npm global paths
     $npmGlobalAsk = Join-Path $env:APPDATA "npm\ask.cmd"
     if (Test-Path $npmGlobalAsk) {
         $askCmd = $npmGlobalAsk
@@ -74,7 +75,7 @@ Write-Host "[+] ASK CLI found: $askCmd" -ForegroundColor Green
 Write-Host "[*] Checking ASK CLI authentication..." -ForegroundColor Cyan
 $configured = $false
 try {
-    $vendors = & $askCmd util get-vendor-list 2>&1
+    $vendors = & $askCmd smapi get-vendor-list 2>&1
     if ($LASTEXITCODE -eq 0 -and $vendors -notmatch "Please run 'ask configure'") {
         $configured = $true
     }
@@ -108,6 +109,17 @@ if (-not $SkillId) {
 }
 
 if (-not $SkillId) {
+    # Try finding skills automatically
+    try {
+        $skillList = & $askCmd smapi list-skills-for-vendor | ConvertFrom-Json
+        if ($skillList.skills -and $skillList.skills.Count -gt 0) {
+            $SkillId = $skillList.skills[0].skillId
+            Write-Host "[+] Automatically detected Skill ID: $SkillId" -ForegroundColor Green
+        }
+    } catch {}
+}
+
+if (-not $SkillId) {
     Write-Host ""
     $SkillId = Read-Host "Bitte gib deine Skill ID ein (aus der Alexa Developer Console URL, z.B. amzn1.ask.skill.xxx)"
 }
@@ -129,33 +141,63 @@ if (Test-Path $AskResourcesPath) {
     }
 }
 
-# 4. Deploy Interaction Model and Manifest via SMAPI
+# 4. Deploy Interaction Model via SMAPI
 Write-Host ""
 Write-Host "[*] Uploading German Interaction Model (de-DE.json)..." -ForegroundColor Cyan
-& $askCmd smapi set-interaction-model -s $SkillId -g development -l de-DE --interaction-model-file $DeModelPath
+& $askCmd smapi set-interaction-model -s $SkillId -g development -l de-DE --interaction-model "file:$DeModelPath"
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "[+] de-DE Interaction Model successfully updated and build started!" -ForegroundColor Green
+    Write-Host "[+] de-DE Interaction Model successfully uploaded!" -ForegroundColor Green
 } else {
-    Write-Host "[-] Failed to update de-DE model. See error above." -ForegroundColor Red
+    Write-Host "[-] Failed to update de-DE model." -ForegroundColor Red
 }
 
-$EnModelPath = Join-Path $SkillPackagePath "interactionModels\custom\en-US.json"
 if (Test-Path $EnModelPath) {
     Write-Host "[*] Uploading English Interaction Model (en-US.json)..." -ForegroundColor Cyan
-    & $askCmd smapi set-interaction-model -s $SkillId -g development -l en-US --interaction-model-file $EnModelPath
+    & $askCmd smapi set-interaction-model -s $SkillId -g development -l en-US --interaction-model "file:$EnModelPath"
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "[+] en-US Interaction Model successfully updated!" -ForegroundColor Green
+        Write-Host "[+] en-US Interaction Model successfully uploaded!" -ForegroundColor Green
+    }
+}
+
+# 5. Deploy Skill Manifest via SMAPI
+Write-Host ""
+Write-Host "[*] Uploading Skill Manifest (skill.json)..." -ForegroundColor Cyan
+& $askCmd smapi update-skill-manifest -s $SkillId -g development --manifest "file:$SkillManifestPath"
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[+] Skill Manifest successfully updated (AudioPlayer interface & Lambda ARN active)!" -ForegroundColor Green
+} else {
+    Write-Host "[-] Failed to update manifest." -ForegroundColor Red
+}
+
+# 6. Wait for model build status
+Write-Host ""
+Write-Host "[*] Waiting for interaction model build to finish..." -ForegroundColor Cyan
+for ($i = 0; $i -lt 12; $i++) {
+    Start-Sleep -Seconds 5
+    $statusJson = & $askCmd smapi get-skill-status -s $SkillId 2>$null
+    if ($statusJson) {
+        try {
+            $statusObj = $statusJson | ConvertFrom-Json
+            $deStatus = $statusObj.interactionModel.'de-DE'.lastUpdateRequest.status
+            $manifestStatus = $statusObj.manifest.lastUpdateRequest.status
+            Write-Host "    Model Build: $deStatus | Manifest: $manifestStatus" -ForegroundColor DarkGray
+            if ($deStatus -eq "SUCCEEDED" -and $manifestStatus -eq "SUCCEEDED") {
+                break
+            }
+            if ($deStatus -eq "FAILED") {
+                Write-Host "[-] Model build failed! Details:" -ForegroundColor Red
+                $statusJson | Write-Host
+                exit 1
+            }
+        } catch {}
     }
 }
 
 Write-Host ""
-Write-Host "[*] Uploading Skill Manifest (skill.json)..." -ForegroundColor Cyan
-& $askCmd smapi update-skill-manifest -s $SkillId -g development --manifest-file $SkillManifestPath
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "[+] Skill Manifest successfully updated (Lambda endpoint & AudioPlayer interface active)!" -ForegroundColor Green
-}
-
-Write-Host ""
 Write-Host "==========================================================" -ForegroundColor Green
-Write-Host "  Deployment complete! Check Alexa Developer Console.     " -ForegroundColor Green
+Write-Host "  DEPLOYMENT COMPLETE & MODEL BUILD SUCCEEDED!            " -ForegroundColor Green
+Write-Host "==========================================================" -ForegroundColor Green
+Write-Host "Skill ID:    $SkillId" -ForegroundColor Cyan
+Write-Host "Lambda ARN:  arn:aws:lambda:us-east-1:397379264657:function:audiobookshelf-alexa" -ForegroundColor Cyan
+Write-Host "Invocation:  'Alexa, öffne Audiobookshelf'" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Green

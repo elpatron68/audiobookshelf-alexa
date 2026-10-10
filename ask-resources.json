@@ -1,23 +1,24 @@
-{
-  "askcliResourcesVersion": "2020-03-31",
-  "profiles": {
-    "default": {
-      "skillMetadata": {
-        "src": "./skill-package"
-      },
-      "code": {
-        "default": {
-          "src": "./lambda"
-        }
-      },
-      "skillInfrastructure": {
-        "userConfig": {
-          "runtime": "nodejs20.x",
-          "handler": "index.handler",
-          "awsRegion": "us-east-1"
-        },
-        "type": "@ask-cli/lambda-deployer"
-      }
-    }
-  }
+﻿{
+    "askcliResourcesVersion":  "2020-03-31",
+    "profiles":  {
+                     "default":  {
+                                     "skillMetadata":  {
+                                                           "src":  "./skill-package"
+                                                       },
+                                     "code":  {
+                                                  "default":  {
+                                                                  "src":  "./lambda"
+                                                              }
+                                              },
+                                     "skillInfrastructure":  {
+                                                                 "userConfig":  {
+                                                                                    "runtime":  "nodejs20.x",
+                                                                                    "handler":  "index.handler",
+                                                                                    "awsRegion":  "us-east-1"
+                                                                                },
+                                                                 "type":  "@ask-cli/lambda-deployer"
+                                                             },
+                                     "skillId":  "amzn1.ask.skill.dee20f56-d346-4587-b4b8-8cb9114e8735"
+                                 }
+                 }
 }
