@@ -349,6 +349,33 @@ test('PlayEpisodeIntent plays specific episode by number', async () => {
   assert.equal(tok.episodeId, 'ep-1');
 });
 
+test('PlayEpisodeIntent parses compound episodeSearch like "1 von Tech Talk"', async () => {
+  const res = await invoke(handler, intent('PlayEpisodeIntent', { episodeSearch: '1 von Tech Talk' }));
+  assert.match(speech(res), /Spiele Episode 1: Hello World von Tech Talk/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-1');
+});
+
+test('PlayEpisodeIntent parses compound episodeSearch like "die neueste von Tech Talk"', async () => {
+  const res = await invoke(handler, intent('PlayEpisodeIntent', { episodeSearch: 'die neueste von Tech Talk' }));
+  assert.match(speech(res), /Spiele Episode 2: Deep Dive von Tech Talk/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-2');
+});
+
+test('PlayEpisodeIntent parses reverse compound like "Tech Talk Folge 1"', async () => {
+  const res = await invoke(handler, intent('PlayEpisodeIntent', { episodeSearch: 'Tech Talk Folge 1' }));
+  assert.match(speech(res), /Spiele Episode 1: Hello World von Tech Talk/);
+  const dir = playDirective(res);
+  assert.ok(dir);
+  const tok = decodeToken(dir.audioItem.stream.token);
+  assert.equal(tok.episodeId, 'ep-1');
+});
+
 test('PlayBookIntent with a podcast title plays the podcast', async () => {
   const res = await invoke(handler, intent('PlayBookIntent', { bookTitle: 'Tech Talk' }));
   assert.match(speech(res), /Spiele Episode 2: Deep Dive/);

@@ -37,7 +37,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "arn:aws:lambda:us-east-1:000000000000:function:audiobookshelf-alexa",
+          "uri": "arn:aws:lambda:us-east-1:397379264657:function:audiobookshelf-alexa",
           "sslCertificateType": "Trusted"
         },
         "interfaces": [

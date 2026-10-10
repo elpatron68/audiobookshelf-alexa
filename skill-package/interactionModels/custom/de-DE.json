@@ -105,18 +105,30 @@
           "name": "PlayEpisodeIntent",
           "slots": [
             { "name": "podcastTitle", "type": "AMAZON.SearchQuery" },
-            { "name": "episodeQuery", "type": "AMAZON.SearchQuery" }
+            { "name": "episodeSearch", "type": "AMAZON.SearchQuery" },
+            { "name": "episodeNumber", "type": "AMAZON.NUMBER" }
           ],
           "samples": [
-            "spiele folge {episodeQuery} von {podcastTitle}",
-            "spiele folge {episodeQuery} von podcast {podcastTitle}",
-            "spiele episode {episodeQuery} von {podcastTitle}",
-            "spiele episode {episodeQuery} von podcast {podcastTitle}",
+            "spiele folge {episodeSearch}",
+            "spiele folge nummer {episodeNumber}",
+            "spiele folge {episodeNumber}",
+            "spiele episode {episodeSearch}",
+            "spiele episode {episodeNumber}",
+            "spiele episode nummer {episodeNumber}",
+            "starte folge {episodeSearch}",
+            "starte episode {episodeSearch}",
+            "folge {episodeSearch}",
+            "folge {episodeNumber}",
+            "episode {episodeSearch}",
+            "episode {episodeNumber}",
             "spiele die neueste folge von {podcastTitle}",
             "spiele die neueste folge von podcast {podcastTitle}",
-            "spiele die letzte folge von {podcastTitle}",
             "spiele die aktuellste folge von {podcastTitle}",
-            "starte folge {episodeQuery} von {podcastTitle}"
+            "spiele die aktuellste folge von podcast {podcastTitle}",
+            "spiele die letzte folge von {podcastTitle}",
+            "spiele die letzte folge von podcast {podcastTitle}",
+            "spiele die erste folge von {podcastTitle}",
+            "spiele die erste folge von podcast {podcastTitle}"
           ]
         },
         {

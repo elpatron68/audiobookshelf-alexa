@@ -91,14 +91,24 @@
           "name": "PlayEpisodeIntent",
           "slots": [
             { "name": "podcastTitle", "type": "AMAZON.SearchQuery" },
-            { "name": "episodeQuery", "type": "AMAZON.SearchQuery" }
+            { "name": "episodeSearch", "type": "AMAZON.SearchQuery" },
+            { "name": "episodeNumber", "type": "AMAZON.NUMBER" }
           ],
           "samples": [
-            "play episode {episodeQuery} of {podcastTitle}",
-            "play episode {episodeQuery} of podcast {podcastTitle}",
+            "play episode {episodeSearch}",
+            "play episode number {episodeNumber}",
+            "play episode {episodeNumber}",
+            "start episode {episodeSearch}",
+            "start episode {episodeNumber}",
+            "episode {episodeSearch}",
+            "episode {episodeNumber}",
             "play the latest episode of {podcastTitle}",
             "play the latest episode of podcast {podcastTitle}",
-            "play the newest episode of {podcastTitle}"
+            "play the newest episode of {podcastTitle}",
+            "play the newest episode of podcast {podcastTitle}",
+            "play the first episode of {podcastTitle}",
+            "play the first episode of podcast {podcastTitle}",
+            "play the oldest episode of {podcastTitle}"
           ]
         },
         {

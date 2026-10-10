@@ -569,24 +569,66 @@ const PlayEpisodeIntentHandler = {
     const client = getClient(h);
     if (!client) return h.responseBuilder.speak(h.__speech).getResponse();
 
-    const podcastTitle = Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle');
-    const episodeQuery = Alexa.getSlotValue(h.requestEnvelope, 'episodeQuery')
+    let podcastTitle = Alexa.getSlotValue(h.requestEnvelope, 'podcastTitle');
+    let episodeQuery = Alexa.getSlotValue(h.requestEnvelope, 'episodeQuery')
       || Alexa.getSlotValue(h.requestEnvelope, 'episodeNumber');
+    const episodeSearch = Alexa.getSlotValue(h.requestEnvelope, 'episodeSearch');
 
-    if (!podcastTitle) {
-      return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
+    if (!podcastTitle && episodeSearch) {
+      // Handles phrases like:
+      // "5 von Fest und Flauschig"
+      // "die neueste von Tech Talk"
+      // "fünf aus Fest und Flauschig"
+      const matchSplit = episodeSearch.match(/^(?:folge\s+|episode\s+)?(.+?)\s+(?:von|aus|of|from)\s+(?:podcast\s+)?(.+)$/i);
+      if (matchSplit) {
+        episodeQuery = matchSplit[1].trim();
+        podcastTitle = matchSplit[2].trim();
+      } else {
+        // Handles phrases like "Fest und Flauschig Folge 5"
+        const reverseSplit = episodeSearch.match(/^(.+?)\s+(?:folge|episode)\s+(.+)$/i);
+        if (reverseSplit) {
+          podcastTitle = reverseSplit[1].trim();
+          episodeQuery = reverseSplit[2].trim();
+        } else if (/^\d+$/.test(episodeSearch.trim())) {
+          episodeQuery = episodeSearch.trim();
+        } else {
+          podcastTitle = episodeSearch.trim();
+        }
+      }
     }
 
     try {
-      const found = await findMedia(client, podcastTitle, { mediaType: 'podcast' });
-      if (!found) return h.responseBuilder.speak(speak('podcastNotFound', podcastTitle)).getResponse();
+      let fullItem = null;
+      if (podcastTitle) {
+        const found = await findMedia(client, podcastTitle, { mediaType: 'podcast' });
+        if (!found) return h.responseBuilder.speak(speak('podcastNotFound', podcastTitle)).getResponse();
+        fullItem = await client.getItem(found.id);
+      } else {
+        // If no podcastTitle given (e.g. "spiele folge 5"), check currently playing podcast or in-progress
+        const current = currentPlaybackState(h);
+        if (current && current.mediaType === 'podcast' && current.itemId) {
+          fullItem = await client.getItem(current.itemId);
+        } else {
+          const me = await client.getMe();
+          const inProg = (me.mediaProgress || [])
+            .filter((p) => !p.isFinished && p.episodeId)
+            .sort((a, b) => (b.lastUpdate || 0) - (a.lastUpdate || 0));
+          if (inProg.length) {
+            fullItem = await client.getItem(inProg[0].libraryItemId);
+          }
+        }
+      }
 
-      const fullItem = await client.getItem(found.id);
+      if (!fullItem) {
+        return h.responseBuilder.speak(speak('noQuery')).reprompt(speak('noQuery')).getResponse();
+      }
+
       const episodes = (fullItem.media && fullItem.media.episodes) || [];
       if (!episodes.length) return h.responseBuilder.speak(speak('noEpisodes')).getResponse();
 
       const matched = matchEpisode(episodes, episodeQuery);
-      if (!matched) return h.responseBuilder.speak(speak('episodeNotFound', episodeQuery || '', podcastTitle)).getResponse();
+      const titleName = (fullItem.media && fullItem.media.metadata && fullItem.media.metadata.title) || podcastTitle || '';
+      if (!matched) return h.responseBuilder.speak(speak('episodeNotFound', episodeQuery || '', titleName)).getResponse();
 
       const { directive, title, itemTitle } = await buildPlayDirective(client, fullItem, { episode: matched });
       return h.responseBuilder
