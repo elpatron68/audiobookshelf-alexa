@@ -18,3 +18,8 @@ audiobookshelf-alexa.zip
 # Editor / OS
 .vscode/
 .idea/
+
+# Dev skill environment
+ask-resources.dev.json
+skill-package/*.dev.json
+skill-package/interactionModels/custom/*.dev.json
