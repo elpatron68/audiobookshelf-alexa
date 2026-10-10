@@ -102,6 +102,23 @@ jobs:
       - name: Install ASK CLI
         run: npm install -g ask-cli
 
+      - name: Configure ASK CLI credentials
+        run: |
+          mkdir -p ~/.ask
+          cat <<EOF > ~/.ask/cli_config
+          {
+            "profiles": {
+              "default": {
+                "token": {
+                  "refresh_token": "${{ secrets.ASK_REFRESH_TOKEN }}",
+                  "token_type": "bearer"
+                },
+                "vendor_id": "${{ secrets.ASK_VENDOR_ID }}"
+              }
+            }
+          }
+          EOF
+
       - name: Deploy interaction models & manifest
         run: |
           if [ -z "$ASK_REFRESH_TOKEN" ] || [ -z "${{ secrets.ALEXA_SKILL_ID }}" ]; then
