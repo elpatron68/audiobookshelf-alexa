@@ -1129,7 +1129,7 @@ const ErrorHandler = {
 // Skill entry point
 // ---------------------------------------------------------------------------
 
-const skillLambda = Alexa.SkillBuilders.custom()
+const skill = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LaunchRequestHandler,
     PlayPodcastIntentHandler,
@@ -1155,14 +1155,20 @@ const skillLambda = Alexa.SkillBuilders.custom()
     SessionEndedRequestHandler,
   )
   .addErrorHandlers(ErrorHandler)
-  .lambda();
+  .create();
 
-exports.handler = async (event, context, callback) => {
+exports.handler = async (event, context = {}, callback) => {
   // If invoked via Lambda Function URL / HTTP request (Account Linking portal)
   if (event.rawPath || event.requestContext?.http || (event.httpMethod && !event.request)) {
-    return handleHttpRequest(event);
+    const httpRes = await handleHttpRequest(event);
+    if (typeof callback === 'function') callback(null, httpRes);
+    return httpRes;
   }
-  return skillLambda(event, context, callback);
+
+  // Invoked via Alexa Skill event
+  const skillRes = await skill.invoke(event, context);
+  if (typeof callback === 'function') callback(null, skillRes);
+  return skillRes;
 };
 
 // Exported for testing
