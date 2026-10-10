@@ -1,20 +1,20 @@
 # Audiobookshelf Alexa Skill — Sprachbefehle / Voice Commands
 
-Vollständige Übersicht aller unterstützten Sprachbefehle und Steuerungsoptionen für den Audiobookshelf Alexa Skill in **Deutsch (de-DE)** und **Englisch (en-US)**.
+Vollständige Übersicht aller unterstützten Sprachbefehle und Steuerungsoptionen für den Bücherregal Alexa Skill in **Deutsch (de-DE)** und **Englisch (en-US)**.
 
 ---
 
 ## 🇩🇪 Deutsch (de-DE)
 
-Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf“** aufgerufen werden.
+Der Skill kann mit dem Rufnamen **„Bücherregal“** oder **„Bücherregal“** aufgerufen werden.
 
 ### 1. Skill starten & Fortsetzen
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Skill öffnen / Begrüßung** | • „Alexa, öffne Audiobookshelf“<br>• „Alexa, starte Audio Shelf“ |
-| **Zuletzt Gehörtes fortsetzen**<br>*(Hörbuch oder Podcast dort weiterhören, wo du aufgehört hast)* | • „Alexa, sage Audiobookshelf mache weiter“<br>• „Alexa, frage Audiobookshelf weiterhören“<br>• „Alexa, frage Audiobookshelf fortsetzen“<br>• „Alexa, sage Audiobookshelf spiele weiter“<br>• „Alexa, frage Audiobookshelf wo ich aufgehört habe“ |
-| **Bestimmten Titel fortsetzen** | • „Alexa, frage Audiobookshelf mache mit *[Titel]* weiter“<br>• „Alexa, frage Audiobookshelf höre *[Titel]* weiter“<br>• „Alexa, frage Audiobookshelf setze *[Titel]* fort“<br>• „Alexa, frage Audiobookshelf setze meinen Podcast fort“ |
+| **Skill öffnen / Begrüßung** | • „Alexa, öffne Bücherregal“<br>• „Alexa, starte Bücherregal“ |
+| **Zuletzt Gehörtes fortsetzen**<br>*(Hörbuch oder Podcast dort weiterhören, wo du aufgehört hast)* | • „Alexa, sage Bücherregal mache weiter“<br>• „Alexa, frage Bücherregal weiterhören“<br>• „Alexa, frage Bücherregal fortsetzen“<br>• „Alexa, sage Bücherregal spiele weiter“<br>• „Alexa, frage Bücherregal wo ich aufgehört habe“ |
+| **Bestimmten Titel fortsetzen** | • „Alexa, frage Bücherregal mache mit *[Titel]* weiter“<br>• „Alexa, frage Bücherregal höre *[Titel]* weiter“<br>• „Alexa, frage Bücherregal setze *[Titel]* fort“<br>• „Alexa, frage Bücherregal setze meinen Podcast fort“ |
 
 ---
 
@@ -22,7 +22,7 @@ Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf�
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Hörbuch nach Name abspielen**<br>*(Startet von Beginn oder setzt gespeicherten Fortschritt fort)* | • „Alexa, frage Audiobookshelf spiele *[Buchtitel]*“<br>• „Alexa, frage Audiobookshelf spiele das Hörbuch *[Buchtitel]*“<br>• „Alexa, frage Audiobookshelf starte *[Buchtitel]*“<br>• „Alexa, frage Audiobookshelf lies *[Buchtitel]* vor“<br>• „Alexa, frage Audiobookshelf ich möchte *[Buchtitel]* hören“ |
+| **Hörbuch nach Name abspielen**<br>*(Startet von Beginn oder setzt gespeicherten Fortschritt fort)* | • „Alexa, frage Bücherregal spiele *[Buchtitel]*“<br>• „Alexa, frage Bücherregal spiele das Hörbuch *[Buchtitel]*“<br>• „Alexa, frage Bücherregal starte *[Buchtitel]*“<br>• „Alexa, frage Bücherregal lies *[Buchtitel]* vor“<br>• „Alexa, frage Bücherregal ich möchte *[Buchtitel]* hören“ |
 
 ---
 
@@ -30,11 +30,11 @@ Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf�
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Podcast starten**<br>*(Spielt die angefangene bzw. neueste Folge)* | • „Alexa, frage Audiobookshelf spiele den Podcast *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf starte Podcast *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf höre Podcast *[Podcast-Titel]*“ |
-| **Bestimmte Folge nach Nummer** | • „Alexa, frage Audiobookshelf spiele Folge *5* von *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf spiele Folge Nummer *12* von *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf starte Episode *3* von *[Podcast-Titel]*“ |
-| **Neueste oder erste Folge** | • „Alexa, frage Audiobookshelf spiele die neueste Folge von *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf spiele die aktuellste Folge von *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf spiele die erste Folge von *[Podcast-Titel]*“<br>• „Alexa, frage Audiobookshelf spiele die letzte Folge von *[Podcast-Titel]*“ |
-| **Nächste Folge** | • „Alexa, frage Audiobookshelf nächste Folge“<br>• „Alexa, frage Audiobookshelf nächste Episode“<br>• „Alexa, frage Audiobookshelf eine Folge weiter“ |
-| **Vorherige Folge** | • „Alexa, frage Audiobookshelf vorherige Folge“<br>• „Alexa, frage Audiobookshelf vorige Episode“<br>• „Alexa, frage Audiobookshelf eine Folge zurück“ |
+| **Podcast starten**<br>*(Spielt die angefangene bzw. neueste Folge)* | • „Alexa, frage Bücherregal spiele den Podcast *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal starte Podcast *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal höre Podcast *[Podcast-Titel]*“ |
+| **Bestimmte Folge nach Nummer** | • „Alexa, frage Bücherregal spiele Folge *5* von *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal spiele Folge Nummer *12* von *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal starte Episode *3* von *[Podcast-Titel]*“ |
+| **Neueste oder erste Folge** | • „Alexa, frage Bücherregal spiele die neueste Folge von *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal spiele die aktuellste Folge von *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal spiele die erste Folge von *[Podcast-Titel]*“<br>• „Alexa, frage Bücherregal spiele die letzte Folge von *[Podcast-Titel]*“ |
+| **Nächste Folge** | • „Alexa, frage Bücherregal nächste Folge“<br>• „Alexa, frage Bücherregal nächste Episode“<br>• „Alexa, frage Bücherregal eine Folge weiter“ |
+| **Vorherige Folge** | • „Alexa, frage Bücherregal vorherige Folge“<br>• „Alexa, frage Bücherregal vorige Episode“<br>• „Alexa, frage Bücherregal eine Folge zurück“ |
 
 ---
 
@@ -42,8 +42,8 @@ Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf�
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Nächstes Kapitel** | • „Alexa, frage Audiobookshelf nächstes Kapitel“<br>• „Alexa, frage Audiobookshelf ein Kapitel weiter“<br>• „Alexa, frage Audiobookshelf spring zum nächsten Kapitel“ |
-| **Vorheriges Kapitel** | • „Alexa, frage Audiobookshelf vorheriges Kapitel“<br>• „Alexa, frage Audiobookshelf voriges Kapitel“<br>• „Alexa, frage Audiobookshelf ein Kapitel zurück“ |
+| **Nächstes Kapitel** | • „Alexa, frage Bücherregal nächstes Kapitel“<br>• „Alexa, frage Bücherregal ein Kapitel weiter“<br>• „Alexa, frage Bücherregal spring zum nächsten Kapitel“ |
+| **Vorheriges Kapitel** | • „Alexa, frage Bücherregal vorheriges Kapitel“<br>• „Alexa, frage Bücherregal voriges Kapitel“<br>• „Alexa, frage Bücherregal ein Kapitel zurück“ |
 
 ---
 
@@ -51,8 +51,8 @@ Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf�
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Vorspulen** | • „Alexa, frage Audiobookshelf springe *30 Sekunden* vor“<br>• „Alexa, frage Audiobookshelf spule *2 Minuten* vor“<br>• „Alexa, frage Audiobookshelf *1 Minute* vor“ |
-| **Zurückspulen** | • „Alexa, frage Audiobookshelf springe *30 Sekunden* zurück“<br>• „Alexa, frage Audiobookshelf spule *2 Minuten* zurück“<br>• „Alexa, frage Audiobookshelf *45 Sekunden* zurück“ |
+| **Vorspulen** | • „Alexa, frage Bücherregal springe *30 Sekunden* vor“<br>• „Alexa, frage Bücherregal spule *2 Minuten* vor“<br>• „Alexa, frage Bücherregal *1 Minute* vor“ |
+| **Zurückspulen** | • „Alexa, frage Bücherregal springe *30 Sekunden* zurück“<br>• „Alexa, frage Bücherregal spule *2 Minuten* zurück“<br>• „Alexa, frage Bücherregal *45 Sekunden* zurück“ |
 
 ---
 
@@ -60,8 +60,8 @@ Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf�
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Sleep Timer stellen**<br>*(Wiedergabe stoppt sanft nach dem Track, der nach Ablauf der Zeit endet)* | • „Alexa, frage Audiobookshelf stelle den Sleep Timer auf *30 Minuten*“<br>• „Alexa, frage Audiobookshelf schalte in *15 Minuten* aus“<br>• „Alexa, frage Audiobookshelf schalte in *45 Minuten* ab“<br>• „Alexa, frage Audiobookshelf in *20 Minuten* schlafen“ |
-| **Sleep Timer abbrechen** | • „Alexa, frage Audiobookshelf Sleep Timer abbrechen“<br>• „Alexa, frage Audiobookshelf Schlaftimer aus“ |
+| **Sleep Timer stellen**<br>*(Wiedergabe stoppt sanft nach dem Track, der nach Ablauf der Zeit endet)* | • „Alexa, frage Bücherregal stelle den Sleep Timer auf *30 Minuten*“<br>• „Alexa, frage Bücherregal schalte in *15 Minuten* aus“<br>• „Alexa, frage Bücherregal schalte in *45 Minuten* ab“<br>• „Alexa, frage Bücherregal in *20 Minuten* schlafen“ |
+| **Sleep Timer abbrechen** | • „Alexa, frage Bücherregal Sleep Timer abbrechen“<br>• „Alexa, frage Bücherregal Schlaftimer aus“ |
 
 ---
 
@@ -69,9 +69,9 @@ Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf�
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Angefangene Titel abfragen** | • „Alexa, frage Audiobookshelf was höre ich gerade“<br>• „Alexa, frage Audiobookshelf welche Bücher höre ich gerade“<br>• „Alexa, frage Audiobookshelf meine angefangenen Podcasts“ |
-| **Neu hinzugefügte Titel** | • „Alexa, frage Audiobookshelf was gibt es Neues“<br>• „Alexa, frage Audiobookshelf was sind die neuesten Hörbücher“<br>• „Alexa, frage Audiobookshelf neue Podcasts“ |
-| **Bibliotheken auflisten** | • „Alexa, frage Audiobookshelf liste meine Bibliotheken“<br>• „Alexa, frage Audiobookshelf welche Bibliotheken habe ich“ |
+| **Angefangene Titel abfragen** | • „Alexa, frage Bücherregal was höre ich gerade“<br>• „Alexa, frage Bücherregal welche Bücher höre ich gerade“<br>• „Alexa, frage Bücherregal meine angefangenen Podcasts“ |
+| **Neu hinzugefügte Titel** | • „Alexa, frage Bücherregal was gibt es Neues“<br>• „Alexa, frage Bücherregal was sind die neuesten Hörbücher“<br>• „Alexa, frage Bücherregal neue Podcasts“ |
+| **Bibliotheken auflisten** | • „Alexa, frage Bücherregal liste meine Bibliotheken“<br>• „Alexa, frage Bücherregal welche Bibliotheken habe ich“ |
 
 ---
 

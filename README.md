@@ -616,24 +616,24 @@ synchronisiert, sodass alles mit der Web-/Mobile-App in Sync bleibt.
 
 > 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*
 
-Der Standard-**Aufrufname** ist **`Audio Shelf`** (z. B. *„Alexa, öffne Audio Shelf“* — englisch gesprochen, als zwei Wörter getrennt).
+Der Standard-**Aufrufname** ist **`Bücherregal`** (z. B. *„Alexa, öffne Bücherregal“*).
 
 ### Vollständige Befehlsübersicht:
 
 | Kategorie | Sprachbefehl | Beschreibung |
 |---|---|---|
-| **Skill starten** | *„Alexa, öffne Audio Shelf“* | Startet den Skill und begrüßt dich. |
-| **Fortsetzen (Zuletzt gehört)** | *„Alexa, sage Audio Shelf mache weiter“*<br>*„Alexa, frage Audio Shelf weiterhören“*<br>*„Alexa, frage Audio Shelf fortsetzen“* | Setzt den zuletzt gehörten Titel (egal ob Hörbuch oder Podcast) an der exakten Sekunde fort. |
-| **Gezielt fortsetzen** | *„Alexa, frage Audio Shelf setze [Titel] fort“*<br>*„Alexa, frage Audio Shelf höre [Titel] weiter“*<br>*„Alexa, frage Audio Shelf mache mit [Titel] weiter“* | Setzt ein bestimmtes Hörbuch oder einen bestimmten Podcast fort. |
-| **Hörbuch abspielen** | *„Alexa, frage Audio Shelf spiele [Titel]“*<br>*„Alexa, frage Audio Shelf spiele das Hörbuch [Titel]“* | Startet das Hörbuch (oder setzt es fort, falls schon begonnen). |
-| **Podcast abspielen** | *„Alexa, frage Audio Shelf spiele den Podcast [Titel]“*<br>*„Alexa, frage Audio Shelf spiele Podcast [Titel]“* | Startet die neueste bzw. zuletzt begonnene Episode des Podcasts. |
-| **Gezielte Folge** | *„Alexa, frage Audio Shelf spiele Folge [Nummer] von [Podcast]“*<br>*„Alexa, frage Audio Shelf spiele die neueste Folge von [Podcast]“*<br>*„Alexa, frage Audio Shelf spiele die erste Folge von [Podcast]“* | Spielt die gewünschte Folge ab (z. B. *„Folge 5 von Fest und Flauschig“*). |
-| **Folgen springen (Podcasts)** | *„Alexa, frage Audio Shelf nächste Folge“*<br>*„Alexa, frage Audio Shelf vorherige Folge“*<br>*„Alexa, nächste“* / *„Alexa, vorherige“* | Springt zur nächsten bzw. vorherigen chronologischen Podcast-Episode. |
-| **Kapitel springen (Hörbücher)** | *„Alexa, frage Audio Shelf nächstes Kapitel“*<br>*„Alexa, frage Audio Shelf vorheriges Kapitel“*<br>*„Alexa, weiter“* / *„Alexa, zurück“* | Springt im aktuellen Hörbuch ein Kapitel vor oder zurück. |
-| **Zeitsprung (Spulen)** | *„Alexa, frage Audio Shelf springe [Dauer] zurück“*<br>*„Alexa, frage Audio Shelf spule [Dauer] vor“* | Z. B. *„springe 30 Sekunden zurück“* oder *„spule 2 Minuten vor“*. |
-| **Sleep Timer** | *„Alexa, frage Audio Shelf stelle den Sleep Timer auf [Dauer]“*<br>*„Alexa, frage Audio Shelf schalte in [Dauer] aus“*<br>*„Alexa, frage Audio Shelf Sleep Timer abbrechen“* | Stellt einen automatischen Einschlaf-Timer (z. B. *„auf 30 Minuten“*). |
-| **Was läuft gerade?** | *„Alexa, frage Audio Shelf was höre ich gerade“*<br>*„Alexa, frage Audio Shelf meine angefangenen Podcasts“*<br>*„Alexa, frage Audio Shelf meine angefangenen Bücher“* | Listet die zuletzt begonnenen Hörbücher und Podcasts auf. |
-| **Neuheiten & Bibliotheken** | *„Alexa, frage Audio Shelf was gibt es Neues“*<br>*„Alexa, frage Audio Shelf liste meine Bibliotheken“* | Nennt neu hinzugefügte Medien oder deine Bibliotheksnamen. |
+| **Skill starten** | *„Alexa, öffne Bücherregal“* | Startet den Skill und begrüßt dich. |
+| **Fortsetzen (Zuletzt gehört)** | *„Alexa, sage Bücherregal mache weiter“*<br>*„Alexa, frage Bücherregal weiterhören“*<br>*„Alexa, frage Bücherregal fortsetzen“* | Setzt den zuletzt gehörten Titel (egal ob Hörbuch oder Podcast) an der exakten Sekunde fort. |
+| **Gezielt fortsetzen** | *„Alexa, frage Bücherregal setze [Titel] fort“*<br>*„Alexa, frage Bücherregal höre [Titel] weiter“*<br>*„Alexa, frage Bücherregal mache mit [Titel] weiter“* | Setzt ein bestimmtes Hörbuch oder einen bestimmten Podcast fort. |
+| **Hörbuch abspielen** | *„Alexa, frage Bücherregal spiele [Titel]“*<br>*„Alexa, frage Bücherregal spiele das Hörbuch [Titel]“* | Startet das Hörbuch (oder setzt es fort, falls schon begonnen). |
+| **Podcast abspielen** | *„Alexa, frage Bücherregal spiele den Podcast [Titel]“*<br>*„Alexa, frage Bücherregal spiele Podcast [Titel]“* | Startet die neueste bzw. zuletzt begonnene Episode des Podcasts. |
+| **Gezielte Folge** | *„Alexa, frage Bücherregal spiele Folge [Nummer] von [Podcast]“*<br>*„Alexa, frage Bücherregal spiele die neueste Folge von [Podcast]“*<br>*„Alexa, frage Bücherregal spiele die erste Folge von [Podcast]“* | Spielt die gewünschte Folge ab (z. B. *„Folge 5 von Tech Talk“*). |
+| **Folgen springen (Podcasts)** | *„Alexa, frage Bücherregal nächste Folge“*<br>*„Alexa, frage Bücherregal vorherige Folge“*<br>*„Alexa, nächste“* / *„Alexa, vorherige“* | Springt zur nächsten bzw. vorherigen chronologischen Podcast-Episode. |
+| **Kapitel springen (Hörbücher)** | *„Alexa, frage Bücherregal nächstes Kapitel“*<br>*„Alexa, frage Bücherregal vorheriges Kapitel“*<br>*„Alexa, weiter“* / *„Alexa, zurück“* | Springt im aktuellen Hörbuch ein Kapitel vor oder zurück. |
+| **Zeitsprung (Spulen)** | *„Alexa, frage Bücherregal springe [Dauer] zurück“*<br>*„Alexa, frage Bücherregal spule [Dauer] vor“* | Z. B. *„springe 30 Sekunden zurück“* oder *„spule 2 Minuten vor“*. |
+| **Sleep Timer** | *„Alexa, frage Bücherregal stelle den Sleep Timer auf [Dauer]“*<br>*„Alexa, frage Bücherregal schalte in [Dauer] aus“*<br>*„Alexa, frage Bücherregal Sleep Timer abbrechen“* | Stellt einen automatischen Einschlaf-Timer (z. B. *„auf 30 Minuten“*). |
+| **Was läuft gerade?** | *„Alexa, frage Bücherregal was höre ich gerade“*<br>*„Alexa, frage Bücherregal meine angefangenen Podcasts“*<br>*„Alexa, frage Bücherregal meine angefangenen Bücher“* | Listet die zuletzt begonnenen Hörbücher und Podcasts auf. |
+| **Neuheiten & Bibliotheken** | *„Alexa, frage Bücherregal was gibt es Neues“*<br>*„Alexa, frage Bücherregal liste meine Bibliotheken“* | Nennt neu hinzugefügte Medien oder deine Bibliotheksnamen. |
 | **Standard-Steuerung** | *„Alexa, Pause“*<br>*„Alexa, Weiter“*<br>*„Alexa, Stop“* | Steuert die laufende Wiedergabe wie gewohnt. |
 
 > **Tipp für Hardware-Tasten:** Die physischen Tasten (Vor/Zurück) auf Echo-Geräten springen bei Podcasts automatisch zur nächsten Folge und bei Hörbüchern zum nächsten Kapitel.
@@ -904,11 +904,11 @@ Du landest im Skill Builder. Jetzt das Interaction Model hochladen:
 5. Für beide Locales: oben rechts Sprachwähler → anderen Locale
    hinzufügen, wiederholen.
 
-> **Zum Aufrufnamen.** Das ausgelieferte Sprachmodell nutzt
-> `audio shelf` (gesprochen als "Audio Shelf") als Aufrufnamen.
-> Alexas deutsche Spracherkennung transkribiert "Audio Shelf"
-> zuverlässig. Amazon verbietet Ein-Wort-Aufrufnamen für Nicht-Marken-Skills,
-> weshalb der zweigliedrige Name optimal funktioniert.
+> **Zum Aufrufnamen.** Das ausgelieferte deutsche Sprachmodell nutzt
+> `bücherregal` (gesprochen als "Bücherregal") als Aufrufnamen.
+> Alexas deutsche Spracherkennung versteht "Bücherregal" absolut
+> zuverlässig und verwechselt es im Gegensatz zu englischen Begriffen
+> niemals mit Audible.
 
 ### Schritt 10b — AudioPlayer-Schnittstelle aktivieren (PFLICHT)
 
@@ -950,7 +950,7 @@ aufrufen.
 2. Tab **Test**. Den Schalter oben von **"Off"** auf **"Development"**
    stellen. **Pflicht — sonst sieht dein Echo den Skill nicht.**
 3. Im Test-Simulator links eintippen:
-   `öffne Audio Shelf`.
+   `öffne Bücherregal`.
 4. Du solltest die Begrüßung hören/sehen.
 5. `mache weiter` versuchen — Lambda liefert eine
    `AudioPlayer.Play`-Direktive im JSON-Output.
@@ -967,9 +967,9 @@ Für echte Wiedergabe: mit einem **echten Echo am gleichen Amazon-
 Konto** wie deine Developer Console sprechen:
 
 ```
-"Alexa, öffne Audio Shelf"
+"Alexa, öffne Bücherregal"
 "mache weiter"
-"Alexa, sage Audio Shelf spiele <buchtitel>"
+"Alexa, sage Bücherregal spiele <buchtitel>"
 ```
 
 Skills im Development-Modus sind auf eigenen Echos automatisch aktiv —
@@ -989,7 +989,7 @@ keine Veröffentlichung, keine "Installation" in der Alexa-App nötig.
 | **Echo: "Bei der Antwort des angeforderten Skill ist ein Problem aufgetreten"** — der Skill öffnet sauber, scheitert nur an `mache weiter` / `spiele …` | Die **AudioPlayer-Schnittstelle ist nicht aktiviert**. Skill Builder → **Interfaces** → **Audio Player** ON → **Save** → **Build skill**. (Siehe Schritt 10b.) |
 | **Echo: "Ich weiß nicht, wie ich dir dabei helfen kann"** bei "Alexa, öffne …" | Entweder (a) der **Test-Schalter** im Developer-Konsole steht auf **"Off"** (auf **Development** stellen), oder (b) der **Aufrufname** wird nicht sauber transkribiert. Im Alexa-**Sprachverlauf** (alexa.amazon.de → Aktivität → Sprachverlauf) ansehen, was Alexa verstanden hat, und einen mehrwortigen Aufrufnamen wählen, der zur Transkription passt. |
 | **Echo: "I could not reach your audiobookshelf server"** | API-Key falsch, abgelaufen oder deaktiviert. In audiobookshelf neu erstellen und `ABS_API_KEY` im Lambda-Env aktualisieren. |
-| **Erste Wiedergabe-Anfrage läuft in Timeout, zweite klappt** | Lambda Cold Start plus langsamer Upstream; mit kurzem `öffne Audio Shelf` vorwärmen, dann `mache weiter`. Durch das 10-s-Timeout aus Schritt 8 schon abgemildert. |
+| **Erste Wiedergabe-Anfrage läuft in Timeout, zweite klappt** | Lambda Cold Start plus langsamer Upstream; mit kurzem `öffne Bücherregal` vorwärmen, dann `mache weiter`. Durch das 10-s-Timeout aus Schritt 8 schon abgemildert. |
 | **Skill antwortet auf Englisch, obwohl du Deutsch gesprochen hast** | Skill-Builder-Sprache ist en-US. de-DE-Locale im Skill Builder ergänzen oder Primärsprache umstellen. Echo-Sprache muss ebenfalls Deutsch (Deutschland) unter **Alexa-App → Geräte → \<Echo\> → Sprache** sein. |
 | **Skill ist gar nicht auf deinem Echo** | Echo und Developer Console müssen am **selben Amazon-Konto** hängen. Unter **Alexa-App → Mehr → Fertigkeiten und Spiele → Deine Fertigkeiten → Dev** nachsehen — der Skill sollte dort erscheinen. Sonst hast du verschiedene Konten benutzt. |
 | **`Lambda timeout` in den CloudWatch-Logs** | Default-Timeout 3 Sekunden; auf 10 s erhöhen (Configuration → General configuration → Edit). |
@@ -1103,7 +1103,7 @@ c.listLibraries().then((r) => console.log(JSON.stringify(r, null, 2)));
 > 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*
 
 Alexa behandelt Befehle unterschiedlich, je nachdem, ob dein Skill in
-einer **aktiven Session** ist (du hast gerade "öffne Audio Shelf"
+einer **aktiven Session** ist (du hast gerade "öffne Bücherregal"
 gesagt und Alexa wartet auf Folgebefehle) oder im **AudioPlayer-Modus**
 (ein Buch läuft). Im AudioPlayer-Modus erreichen den Skill nur
 Built-in-Intents ohne explizite Anrufung — eigene Phrasen brauchen den
@@ -1111,14 +1111,14 @@ Skill-Namen.
 
 | Was du willst | Aktive Session | AudioPlayer-Modus (Buch läuft) |
 |---|---|---|
-| Buch starten | `spiele <titel>` | `Alexa, sage Audio Shelf spiele <titel>` |
+| Buch starten | `spiele <titel>` | `Alexa, sage Bücherregal spiele <titel>` |
 | Letztes Buch fortsetzen | `mache weiter` | nicht nötig (läuft schon) |
 | Pause | `pause` | `Alexa, pause` |
 | Stop | `stop` | `Alexa, stop` |
 | Nächstes Kapitel | `nächstes kapitel` / `weiter` | **`Alexa, weiter`** oder `Alexa, nächstes` (Built-in) |
 | Voriges Kapitel | `voriges kapitel` / `zurück` | **`Alexa, zurück`** (Built-in) |
-| ±N Sekunden/Minuten springen | `spring 30 sekunden vor` | `Alexa, sage Audio Shelf spring 30 sekunden vor` |
-| Sleep Timer | `stelle den sleep timer auf 20 minuten` | `Alexa, sage Audio Shelf sleep timer 20 minuten` |
+| ±N Sekunden/Minuten springen | `spring 30 sekunden vor` | `Alexa, sage Bücherregal spring 30 sekunden vor` |
+| Sleep Timer | `stelle den sleep timer auf 20 minuten` | `Alexa, sage Bücherregal sleep timer 20 minuten` |
 | Was läuft gerade | `welche bücher höre ich gerade` | Alexa-App nutzen oder vorher pausieren |
 
 > **Warum "nächstes Kapitel" während der Wiedergabe nicht ohne
