@@ -16,8 +16,7 @@ const {
 } = require('./fixtures/alexa');
 const { decodeToken, encodeToken } = require('../lib/playback');
 
-// Wire the mock fetch BEFORE requiring index.js so the AbsClient picks
-// it up at construction time.
+process.env.NODE_ENV = 'test';
 installFetch();
 const { handler } = require('../index');
 
@@ -501,5 +500,18 @@ test('AudioPlayer.PlaybackNearlyFinished enqueues next episode for podcast', asy
   const tok = decodeToken(dir.audioItem.stream.token);
   assert.equal(tok.episodeId, 'ep-2');
   assert.equal(tok.mediaType, 'podcast');
+});
+
+test('Unlinked user request prompts for account linking with LinkAccount card', async () => {
+  const origNodeEnv = process.env.NODE_ENV;
+  try {
+    process.env.NODE_ENV = 'production';
+    delete process.env.ALLOW_ENV_FALLBACK;
+    const res = await invoke(handler, launch());
+    assert.match(speech(res), /verknüpfe zuerst/i);
+    assert.equal(res.response.card?.type, 'LinkAccount');
+  } finally {
+    process.env.NODE_ENV = origNodeEnv;
+  }
 });
 

@@ -38,8 +38,9 @@ function getClient(handlerInput) {
       }
     }
 
-    // 2. Fallback to process.env for local development / legacy single-user
-    if (process.env.ABS_BASE_URL && process.env.ABS_API_KEY) {
+    // 2. Fallback to process.env for local unit tests or explicit dev override
+    if ((process.env.NODE_ENV === 'test' || process.env.ALLOW_ENV_FALLBACK === 'true')
+        && process.env.ABS_BASE_URL && process.env.ABS_API_KEY) {
       return fromEnv(process.env);
     }
 

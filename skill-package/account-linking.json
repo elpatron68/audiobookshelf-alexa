@@ -7,7 +7,11 @@
     "clientSecret": "audiobookshelf-secret-2026",
     "accessTokenScheme": "REQUEST_BODY_CREDENTIALS",
     "defaultTokenExpirationInSeconds": 315360000,
-    "skipOnEnablement": false,
+    "skipOnEnablement": true,
+    "domains": [
+      "gu53wcqfzqxqd2n7jdbaixikam0mcqcu.lambda-url.us-east-1.on.aws",
+      "raw.githubusercontent.com"
+    ],
     "scopes": []
   }
 }
