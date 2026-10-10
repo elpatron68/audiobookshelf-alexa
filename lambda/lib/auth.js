@@ -233,7 +233,7 @@ function renderAuthPage({ redirectUri, state, clientId, responseType, errorMessa
 
       <div class="form-group">
         <label for="api_key">API-Schlüssel (API-Key)</label>
-        <input type="password" id="api_key" name="api_key" placeholder="eyJhbGciOi..." required value="${sanitize(values.apiKey)}">
+        <input type="password" id="api_key" name="api_key" placeholder="Dein Audiobookshelf API-Key..." required value="${sanitize(values.apiKey)}">
         <div class="hint">Erstelle einen API-Key im Audiobookshelf Web-Interface unter: <em>Einstellungen &rarr; Benutzer &rarr; API-Schlüssel</em>.</div>
       </div>
 
