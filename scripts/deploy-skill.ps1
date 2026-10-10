@@ -133,8 +133,8 @@ if (-not $SkillId) {
 if (Test-Path $AskResourcesPath) {
     try {
         $res = Get-Content $AskResourcesPath -Raw | ConvertFrom-Json
-        $res.profiles.default | Add-Member -NotePropertyName "skillId" -NotePropertyValue $SkillId -Force
-        $res | ConvertTo-Json -Depth 10 | Set-Content $AskResourcesPath -Encoding UTF8
+        $jsonOut = $res | ConvertTo-Json -Depth 10
+        [System.IO.File]::WriteAllText($AskResourcesPath, $jsonOut, (New-Object System.Text.UTF8Encoding $false))
         Write-Host "[+] ask-resources.json updated with Skill ID." -ForegroundColor Green
     } catch {
         Write-Warning "Could not update ask-resources.json: $_"
