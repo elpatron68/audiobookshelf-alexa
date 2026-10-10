@@ -20,13 +20,9 @@ with the web/mobile apps.
 
 ## Features
 
-The default **invocation name** is `my audiobooks` (English) and
-`meine hörbücher` (German) — change it in
-`skill-package/interactionModels/custom/*.json` if you want
-something else (such as `meine mediathek`), but pick a multi-word phrase that Alexa's speech
-recognition can transcribe.
+The default **invocation name** is **`Audiobook Shelf`** (pronounced as two separate words: `audiobook shelf` in both English and German).
 
-- **Launch** — `Alexa, open my audiobooks`.
+- **Launch** — `Alexa, open Audiobook Shelf`.
 - **Play by title** — `play <title>`. Searches both audiobook and podcast libraries,
   picks the top hit, and resumes from saved progress if already started.
 - **Play podcasts** — `play podcast <title>`. Starts the newest or in-progress episode.
@@ -73,11 +69,19 @@ recognition can transcribe.
 │   ├── index.js                   # Skill entry point and intent handlers
 │   ├── lib/
 │   │   ├── absClient.js           # audiobookshelf HTTP client
+│   │   ├── auth.js                # OAuth2 portal & token encryption (AES-256-GCM)
 │   │   ├── playback.js            # AudioPlayer token + offset helpers
 │   │   └── strings.js             # Localized response strings
-│   └── test/                      # node:test unit tests
+│   └── test/                      # node:test unit tests (68 tests)
+├── scripts/                       # Deployment helper scripts (PowerShell & Bash)
+│   ├── build-package.ps1          # Package lambda into audiobookshelf-alexa.zip
+│   ├── deploy-lambda.ps1          # Deploy / update Lambda & Function URL
+│   └── deploy-skill.ps1           # Deploy skill models & account linking via ASK CLI
+├── abs-commands.md                # Full voice command reference (DE & EN)
+├── abs-commands_de.pdf            # Printable PDF cheat sheet (German)
+├── abs-commands_en.pdf            # Printable PDF cheat sheet (English)
 ├── ask-resources.json             # ASK CLI deployment config
-└── .env.example                   # Required Lambda env vars
+└── .env.example                   # Optional Lambda env vars fallback
 ```
 
 ## Step-by-step installation (for first-timers)
@@ -258,21 +262,24 @@ Now the **handler setting** must match `index.handler`:
    it.)
 3. Save.
 
-### Step 8 — Set the environment variables
+### Step 8 — Configure Authentication (Account Linking or Environment Variables)
 
-Still on the Lambda function page:
+The skill supports two authentication methods:
 
-1. Click the **Configuration** tab.
-2. Click **Environment variables** in the left side panel.
-3. Click **Edit** → **Add environment variable** twice:
-   - `ABS_BASE_URL` = your audiobookshelf URL, **no trailing slash**
-     (e.g. `https://abs.yourdomain.com`)
-   - `ABS_API_KEY` = the API key you copied in step 2
-4. Optionally a third one if you have multiple libraries and want to
-   pin one:
-   - `ABS_DEFAULT_LIBRARY_ID` = the library ID (find it in the
-     audiobookshelf URL when browsing a library)
-5. Click **Save**.
+- **Method A: Account Linking via Alexa App (Recommended & Store-Ready):**
+  Users connect their own server and API key directly in the Alexa app through an OAuth2 web portal. No credentials need to be stored in Lambda.
+  Enable a **Function URL** (Auth: None) on your Lambda, set up Account Linking in the Alexa Developer Console using the Function URL (`/auth` and `/token`), and link your account in the Alexa app.
+
+- **Method B: Direct Environment Variables (Quick & Simple for Personal Use):**
+  If you only use the skill yourself, you can configure your server credentials directly in AWS Lambda:
+  1. Click the **Configuration** tab.
+  2. Click **Environment variables** in the left side panel.
+  3. Click **Edit** → **Add environment variable**:
+     - `ABS_BASE_URL` = your audiobookshelf URL, **no trailing slash** (e.g. `https://abs.yourdomain.com`)
+     - `ABS_API_KEY` = the API key you copied in step 2
+     - `ALLOW_ENV_FALLBACK` = `true` (enables direct fallback when no account linking token is present)
+     - Optional: `ABS_DEFAULT_LIBRARY_ID` = library ID to pin by default
+  4. Click **Save**.
 
 While you're in **Configuration**, also bump the function timeout —
 the default 3 seconds is too tight for a cold-start Lambda calling
@@ -329,13 +336,10 @@ You'll land in the skill builder. Now upload the interaction model:
 5. If you want both locales: top-right language picker → add the other
    locale and repeat.
 
-> **About the invocation name.** The shipped models use
-> `my audiobooks` / `meine hörbücher` as the invocation name. If you
-> change the `invocationName` field in the JSON, keep it to two or more
-> common-language words — Amazon disallows single-word invocation
-> names for non-brand skills, and Alexa's speech recognition handles
-> multi-word phrases more reliably (especially in German, where
-> "audiobookshelf" is transcribed as three separate words).
+> **About the invocation name.** The shipped interaction models use
+> `audiobook shelf` (spoken as "Audiobook Shelf") as the invocation name.
+> Amazon disallows single-word invocation names for non-brand skills, and
+> Alexa's speech recognition handles "Audiobook Shelf" reliably.
 
 ### Step 10b — Enable the AudioPlayer interface (REQUIRED)
 
@@ -381,7 +385,7 @@ invoking it.
    page from **"Off"** to **"Development"**. **This is required —
    without it your Echo doesn't see the skill.**
 3. In the test simulator panel on the left, type:
-   `open my audiobooks`.
+   `open Audiobook Shelf`.
 4. You should hear/see the welcome message.
 5. Try `continue` — Lambda returns an `AudioPlayer.Play` directive in
    the JSON Output panel.
@@ -398,9 +402,9 @@ For real audio playback, talk to **a real Echo device on the same
 Amazon account** as your developer console:
 
 ```
-"Alexa, open my audiobooks"
+"Alexa, open Audiobook Shelf"
 "continue"
-"Alexa, ask my audiobooks to play <book title>"
+"Alexa, ask Audiobook Shelf to play <book title>"
 ```
 
 Skills in Development mode are automatically enabled on your own
@@ -421,7 +425,7 @@ the Alexa app.
 | **Echo: "There was a problem with the requested skill's response"** — but the skill opens fine and only fails on `continue` / `play …` | The **AudioPlayer interface is not enabled** for the skill. Go to the skill builder → **Interfaces** → toggle **Audio Player** ON → **Save** → **Build skill**. (See Step 10b.) |
 | **Echo: "I don't know how to help you with that"** when you say "Alexa, open …" | Either (a) the skill's **Test toggle is "Off"** in the developer console (set to **Development**), or (b) the **invocation name** can't be transcribed by Alexa's speech recognition. Check the Alexa **voice history** (alexa.amazon.com → Activity → Voice history) to see what Alexa thought you said, and pick a multi-word invocation name that matches the transcription. |
 | **Echo: "I could not reach your audiobookshelf server"** | API key is wrong, expired, or disabled. Re-create in audiobookshelf and update `ABS_API_KEY` in Lambda env. |
-| **First playback request times out, second works** | Lambda cold start + slow upstream call; pre-warm with a quick `open my audiobooks` first, then issue the `continue`. Already mitigated by the 10 s timeout from Step 8. |
+| **First playback request times out, second works** | Lambda cold start + slow upstream call; pre-warm with a quick `open Audiobook Shelf` first, then issue the `continue`. Already mitigated by the 10 s timeout from Step 8. |
 | **Skill responds in the wrong language** | The skill builder language doesn't match your Echo. Add the missing locale in the skill builder, or switch your skill's primary locale. Make sure your Echo's language matches under **Alexa app → Devices → \<Echo\> → Language**. |
 | **Skill is not on your Echo at all** | The Echo and the developer console must use the **same Amazon account**. Check **Alexa app → More → Skills & Games → Your Skills → Dev** — the skill should appear there. If it doesn't, you used different accounts. |
 | **`Lambda timeout` in CloudWatch logs** | Default Lambda timeout is 3 seconds; bump it to 10 s (Configuration → General configuration → Edit). |
@@ -448,20 +452,17 @@ zip -r ../audiobookshelf-alexa.zip . -x "test/*"
 cd ..
 ```
 
-PowerShell equivalent (Windows):
+PowerShell (Windows) using the included helper scripts:
 
 ```powershell
-Push-Location lambda
-npm install        # only if you changed package.json
-npm test           # always, before deploying
-Pop-Location
-$temp = Join-Path $env:TEMP "abs-alexa-pkg"
-if (Test-Path "audiobookshelf-alexa.zip") { Remove-Item "audiobookshelf-alexa.zip" -Force }
-if (Test-Path $temp) { Remove-Item $temp -Recurse -Force }
-New-Item -ItemType Directory -Path $temp | Out-Null
-Get-ChildItem -Path "lambda" -Exclude "test" | Copy-Item -Destination $temp -Recurse -Force
-Compress-Archive -Path (Join-Path $temp "*") -DestinationPath "audiobookshelf-alexa.zip" -Force
-Remove-Item $temp -Recurse -Force
+# Automatically runs unit tests and creates audiobookshelf-alexa.zip
+.\scripts\build-package.ps1
+
+# Or directly deploy to AWS Lambda via AWS CLI:
+.\scripts\deploy-lambda.ps1
+
+# Or deploy interaction models & skill package via ASK CLI:
+.\scripts\deploy-skill.ps1
 ```
 
 Upload the new ZIP via Lambda → Code → **Upload from** → **.zip
@@ -534,7 +535,7 @@ c.listLibraries().then((r) => console.log(JSON.stringify(r, null, 2)));
 > 📄 **Printable PDF Cheat Sheet:** [abs-commands_en.pdf](abs-commands_en.pdf) *(German version: [abs-commands_de.pdf](abs-commands_de.pdf))*
 
 Alexa treats commands differently depending on whether your skill
-is in an **active session** (you just said "open my audiobooks"
+is in an **active session** (you just said "open Audiobook Shelf"
 and Alexa is listening for follow-ups) or **AudioPlayer mode** (a
 book is playing). During AudioPlayer mode only built-in intents
 get routed to the skill without an explicit invocation — custom
@@ -542,14 +543,14 @@ phrases need the skill name.
 
 | What you want | Active session | AudioPlayer mode (book playing) |
 |---|---|---|
-| Start a book | `play <title>` | `Alexa, ask my audiobooks to play <title>` |
+| Start a book | `play <title>` | `Alexa, ask Audiobook Shelf to play <title>` |
 | Continue last book | `continue` | not applicable (already playing) |
 | Pause | `pause` | `Alexa, pause` |
 | Stop | `stop` | `Alexa, stop` |
 | Next chapter | `next chapter` / `next` | **`Alexa, next`** (built-in) |
 | Previous chapter | `previous chapter` / `previous` | **`Alexa, previous`** (built-in) |
-| Skip ±N seconds/minutes | `skip 30 seconds forward` | `Alexa, ask my audiobooks to skip 30 seconds forward` |
-| Sleep timer | `set a sleep timer for 20 minutes` | `Alexa, ask my audiobooks sleep timer 20 minutes` |
+| Skip ±N seconds/minutes | `skip 30 seconds forward` | `Alexa, ask Audiobook Shelf to skip 30 seconds forward` |
+| Sleep timer | `set a sleep timer for 20 minutes` | `Alexa, ask Audiobook Shelf sleep timer 20 minutes` |
 | What's playing | `what am I listening to` | use Alexa app or pause first |
 
 > **Why "next chapter" doesn't work bare while a book is playing.**
@@ -831,21 +832,23 @@ Der **Handler** muss auf `index.handler` stehen:
 2. **Handler** auf `index.handler` setzen (Standard; bitte prüfen).
 3. Speichern.
 
-### Schritt 8 — Umgebungsvariablen setzen
+### Schritt 8 — Authentifizierung konfigurieren (Account-Linking oder Umgebungsvariablen)
 
-Weiter auf der Lambda-Seite:
+Der Skill unterstützt zwei Authentifizierungsmethoden:
 
-1. Tab **Configuration**.
-2. Links **Environment variables**.
-3. **Edit** → zweimal **Add environment variable**:
-   - `ABS_BASE_URL` = audiobookshelf-URL, **ohne abschließenden Slash**
-     (z. B. `https://abs.deinedomain.de`)
-   - `ABS_API_KEY` = der in Schritt 2 kopierte API-Key
-4. Optional eine dritte, falls du mehrere Bibliotheken hast und eine
-   festlegen willst:
-   - `ABS_DEFAULT_LIBRARY_ID` = die Bibliotheks-ID (in der
-     audiobookshelf-URL beim Browsen einer Bibliothek sichtbar)
-5. **Save**.
+- **Methode A: Account-Linking über die Alexa-App (Empfohlen & Store-Ready):**
+  Jeder Nutzer verbindet seinen Server und API-Key sicher direkt in der Alexa-App über ein OAuth2-Webportal. In Lambda müssen keine Zugangsdaten hinterlegt werden.
+  Aktiviere eine **Function URL** (Auth: None) für deine Lambda, richte Account-Linking in der Alexa Developer Console mit dieser URL (`/auth` und `/token`) ein, und verknüpfe dein Konto in der Alexa-App.
+
+- **Methode B: Direkte Umgebungsvariablen (Schnell & Einfach für den Eigenbedarf):**
+  Wenn du den Skill ausschließlich selbst nutzt, kannst du deine Zugangsdaten direkt in AWS Lambda hinterlegen:
+  1. Tab **Configuration** → links **Environment variables**.
+  2. **Edit** → Variablen hinzufügen:
+     - `ABS_BASE_URL` = audiobookshelf-URL, **ohne abschließenden Slash** (z. B. `https://abs.deinedomain.de`)
+     - `ABS_API_KEY` = der in Schritt 2 kopierte API-Key
+     - `ALLOW_ENV_FALLBACK` = `true` (erlaubt den Direktzugriff ohne OAuth-Token)
+     - Optional: `ABS_DEFAULT_LIBRARY_ID` = die Bibliotheks-ID
+  3. **Save**.
 
 Im Tab **Configuration** auch das Funktions-Timeout erhöhen — die
 Standard-3-Sekunden sind für einen kalten Lambda-Aufruf gegen
@@ -901,14 +904,11 @@ Du landest im Skill Builder. Jetzt das Interaction Model hochladen:
 5. Für beide Locales: oben rechts Sprachwähler → anderen Locale
    hinzufügen, wiederholen.
 
-> **Zum Aufrufnamen.** Das ausgelieferte `de-DE.json` nutzt
-> `meine hörbücher` als Aufrufnamen. Das ist Absicht — Alexas
-> deutsche Spracherkennung transkribiert "audiobookshelf" als drei
-> Wörter ("audio book shelf") und matcht keinen Ein-Wort-Aufruf.
-> Mehrwortige deutsche Phrasen bestehen außerdem die Zertifizierung,
-> da Amazon Ein-Wort-Aufrufnamen für Nicht-Marken-Skills verbietet.
-> Wenn du das `invocationName`-Feld änderst, bleib bei zwei oder
-> mehr alltäglichen Wörtern.
+> **Zum Aufrufnamen.** Das ausgelieferte Sprachmodell nutzt
+> `audiobook shelf` (gesprochen als "Audiobook Shelf") als Aufrufnamen.
+> Alexas deutsche Spracherkennung transkribiert "Audiobook Shelf"
+> zuverlässig. Amazon verbietet Ein-Wort-Aufrufnamen für Nicht-Marken-Skills,
+> weshalb der zweigliedrige Name optimal funktioniert.
 
 ### Schritt 10b — AudioPlayer-Schnittstelle aktivieren (PFLICHT)
 
@@ -950,7 +950,7 @@ aufrufen.
 2. Tab **Test**. Den Schalter oben von **"Off"** auf **"Development"**
    stellen. **Pflicht — sonst sieht dein Echo den Skill nicht.**
 3. Im Test-Simulator links eintippen:
-   `öffne meine hörbücher`.
+   `öffne Audiobook Shelf`.
 4. Du solltest die Begrüßung hören/sehen.
 5. `mache weiter` versuchen — Lambda liefert eine
    `AudioPlayer.Play`-Direktive im JSON-Output.
@@ -967,9 +967,9 @@ Für echte Wiedergabe: mit einem **echten Echo am gleichen Amazon-
 Konto** wie deine Developer Console sprechen:
 
 ```
-"Alexa, öffne meine hörbücher"
+"Alexa, öffne Audiobook Shelf"
 "mache weiter"
-"Alexa, sage meine hörbücher spiele <buchtitel>"
+"Alexa, sage Audiobook Shelf spiele <buchtitel>"
 ```
 
 Skills im Development-Modus sind auf eigenen Echos automatisch aktiv —
@@ -989,7 +989,7 @@ keine Veröffentlichung, keine "Installation" in der Alexa-App nötig.
 | **Echo: "Bei der Antwort des angeforderten Skill ist ein Problem aufgetreten"** — der Skill öffnet sauber, scheitert nur an `mache weiter` / `spiele …` | Die **AudioPlayer-Schnittstelle ist nicht aktiviert**. Skill Builder → **Interfaces** → **Audio Player** ON → **Save** → **Build skill**. (Siehe Schritt 10b.) |
 | **Echo: "Ich weiß nicht, wie ich dir dabei helfen kann"** bei "Alexa, öffne …" | Entweder (a) der **Test-Schalter** im Developer-Konsole steht auf **"Off"** (auf **Development** stellen), oder (b) der **Aufrufname** wird nicht sauber transkribiert. Im Alexa-**Sprachverlauf** (alexa.amazon.de → Aktivität → Sprachverlauf) ansehen, was Alexa verstanden hat, und einen mehrwortigen Aufrufnamen wählen, der zur Transkription passt. |
 | **Echo: "I could not reach your audiobookshelf server"** | API-Key falsch, abgelaufen oder deaktiviert. In audiobookshelf neu erstellen und `ABS_API_KEY` im Lambda-Env aktualisieren. |
-| **Erste Wiedergabe-Anfrage läuft in Timeout, zweite klappt** | Lambda Cold Start plus langsamer Upstream; mit kurzem `öffne meine hörbücher` vorwärmen, dann `mache weiter`. Durch das 10-s-Timeout aus Schritt 8 schon abgemildert. |
+| **Erste Wiedergabe-Anfrage läuft in Timeout, zweite klappt** | Lambda Cold Start plus langsamer Upstream; mit kurzem `öffne Audiobook Shelf` vorwärmen, dann `mache weiter`. Durch das 10-s-Timeout aus Schritt 8 schon abgemildert. |
 | **Skill antwortet auf Englisch, obwohl du Deutsch gesprochen hast** | Skill-Builder-Sprache ist en-US. de-DE-Locale im Skill Builder ergänzen oder Primärsprache umstellen. Echo-Sprache muss ebenfalls Deutsch (Deutschland) unter **Alexa-App → Geräte → \<Echo\> → Sprache** sein. |
 | **Skill ist gar nicht auf deinem Echo** | Echo und Developer Console müssen am **selben Amazon-Konto** hängen. Unter **Alexa-App → Mehr → Fertigkeiten und Spiele → Deine Fertigkeiten → Dev** nachsehen — der Skill sollte dort erscheinen. Sonst hast du verschiedene Konten benutzt. |
 | **`Lambda timeout` in den CloudWatch-Logs** | Default-Timeout 3 Sekunden; auf 10 s erhöhen (Configuration → General configuration → Edit). |
@@ -1016,20 +1016,17 @@ zip -r ../audiobookshelf-alexa.zip . -x "test/*"
 cd ..
 ```
 
-PowerShell-Äquivalent (Windows):
+PowerShell (Windows) mit den enthaltenen Hilfsskripten:
 
 ```powershell
-Push-Location lambda
-npm install        # nur falls package.json geändert
-npm test           # immer, vor dem Deployen
-Pop-Location
-$temp = Join-Path $env:TEMP "abs-alexa-pkg"
-if (Test-Path "audiobookshelf-alexa.zip") { Remove-Item "audiobookshelf-alexa.zip" -Force }
-if (Test-Path $temp) { Remove-Item $temp -Recurse -Force }
-New-Item -ItemType Directory -Path $temp | Out-Null
-Get-ChildItem -Path "lambda" -Exclude "test" | Copy-Item -Destination $temp -Recurse -Force
-Compress-Archive -Path (Join-Path $temp "*") -DestinationPath "audiobookshelf-alexa.zip" -Force
-Remove-Item $temp -Recurse -Force
+# Führt automatisch Unit-Tests aus und erstellt audiobookshelf-alexa.zip:
+.\scripts\build-package.ps1
+
+# Oder direkt nach AWS Lambda deployen:
+.\scripts\deploy-lambda.ps1
+
+# Oder Sprachmodelle & Skill-Paket via ASK CLI deployen:
+.\scripts\deploy-skill.ps1
 ```
 
 Neue ZIP über Lambda → Code → **Hochladen von** → **.zip-Datei**
@@ -1106,7 +1103,7 @@ c.listLibraries().then((r) => console.log(JSON.stringify(r, null, 2)));
 > 📄 **Druckbarer Spickzettel (PDF):** [abs-commands_de.pdf](abs-commands_de.pdf) *(Englische Version: [abs-commands_en.pdf](abs-commands_en.pdf))*
 
 Alexa behandelt Befehle unterschiedlich, je nachdem, ob dein Skill in
-einer **aktiven Session** ist (du hast gerade "öffne meine hörbücher"
+einer **aktiven Session** ist (du hast gerade "öffne Audiobook Shelf"
 gesagt und Alexa wartet auf Folgebefehle) oder im **AudioPlayer-Modus**
 (ein Buch läuft). Im AudioPlayer-Modus erreichen den Skill nur
 Built-in-Intents ohne explizite Anrufung — eigene Phrasen brauchen den
@@ -1114,14 +1111,14 @@ Skill-Namen.
 
 | Was du willst | Aktive Session | AudioPlayer-Modus (Buch läuft) |
 |---|---|---|
-| Buch starten | `spiele <titel>` | `Alexa, sage meine hörbücher spiele <titel>` |
+| Buch starten | `spiele <titel>` | `Alexa, sage Audiobook Shelf spiele <titel>` |
 | Letztes Buch fortsetzen | `mache weiter` | nicht nötig (läuft schon) |
 | Pause | `pause` | `Alexa, pause` |
 | Stop | `stop` | `Alexa, stop` |
 | Nächstes Kapitel | `nächstes kapitel` / `weiter` | **`Alexa, weiter`** oder `Alexa, nächstes` (Built-in) |
 | Voriges Kapitel | `voriges kapitel` / `zurück` | **`Alexa, zurück`** (Built-in) |
-| ±N Sekunden/Minuten springen | `spring 30 sekunden vor` | `Alexa, sage meine hörbücher spring 30 sekunden vor` |
-| Sleep Timer | `stelle den sleep timer auf 20 minuten` | `Alexa, sage meine hörbücher sleep timer 20 minuten` |
+| ±N Sekunden/Minuten springen | `spring 30 sekunden vor` | `Alexa, sage Audiobook Shelf spring 30 sekunden vor` |
+| Sleep Timer | `stelle den sleep timer auf 20 minuten` | `Alexa, sage Audiobook Shelf sleep timer 20 minuten` |
 | Was läuft gerade | `welche bücher höre ich gerade` | Alexa-App nutzen oder vorher pausieren |
 
 > **Warum "nächstes Kapitel" während der Wiedergabe nicht ohne
