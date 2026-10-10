@@ -5,13 +5,13 @@
         "de-DE": {
           "name": "Audiobookshelf",
           "summary": "Höre Hörbücher und Podcasts von deinem Audiobookshelf-Server.",
-          "description": "Spiele Hörbücher und Podcasts von deinem selbst gehosteten Audiobookshelf-Server direkt auf deinem Alexa-Gerät ab. Der Wiedergabefortschritt wird nahtlos mit deinem Server synchronisiert.\n\nUNTERSTÜTZTE SPRACHBEFEHLE:\n\n1. STARTEN & FORTSETZEN:\n• „Alexa, öffne Audiobook Shelf“\n• „Alexa, sage Audiobook Shelf mache weiter“ (setzt den zuletzt gehörten Titel oder Podcast fort)\n• „Alexa, frage Audiobook Shelf weiterhören“ / „fortsetzen“\n• „Alexa, frage Audiobook Shelf setze [Titel] fort“ / „höre [Titel] weiter“\n• „Alexa, frage Audiobook Shelf spiele [Titel]“\n\n2. PODCASTS:\n• „Alexa, frage Audiobook Shelf spiele den Podcast [Titel]“ (spielt die neueste bzw. angefangene Folge)\n• „Alexa, frage Audiobook Shelf spiele Folge [Nummer] von [Podcast-Titel]“ (z. B. „Folge 5 von Tech Talk“)\n• „Alexa, frage Audiobook Shelf spiele die neueste Folge von [Podcast-Titel]“\n• „Alexa, frage Audiobook Shelf spiele die erste Folge von [Podcast-Titel]“\n• „Alexa, frage Audiobook Shelf nächste Folge“ / „vorherige Folge“\n\n3. HÖRBUCH-KAPITEL:\n• „Alexa, frage Audiobook Shelf nächstes Kapitel“\n• „Alexa, frage Audiobook Shelf vorheriges Kapitel“\n\n4. SPULEN (ZEITBASIERT):\n• „Alexa, frage Audiobook Shelf springe 30 Sekunden zurück“\n• „Alexa, frage Audiobook Shelf spule 2 Minuten vor“\n\n5. SLEEP TIMER:\n• „Alexa, frage Audiobook Shelf stelle den Sleep Timer auf 30 Minuten“\n• „Alexa, frage Audiobook Shelf schalte in 15 Minuten aus“\n• „Alexa, frage Audiobook Shelf Sleep Timer abbrechen“\n\n6. ÜBERSICHT & BIBLIOTHEK:\n• „Alexa, frage Audiobook Shelf was höre ich gerade“ (zeigt angefangene Titel)\n• „Alexa, frage Audiobook Shelf was gibt es Neues“\n• „Alexa, frage Audiobook Shelf liste meine Bibliotheken“\n\n7. STANDARD-STEUERUNG:\n• „Alexa, Pause“ / „Alexa, Weiter“ / „Alexa, Stop“\n• Echo-Tasten (Vor/Zurück) springen bei Podcasts zur nächsten Folge und bei Hörbüchern zum nächsten Kapitel.",
+          "description": "Spiele Hörbücher und Podcasts von deinem selbst gehosteten Audiobookshelf-Server direkt auf deinem Alexa-Gerät ab. Der Wiedergabefortschritt wird nahtlos mit deinem Server synchronisiert.\n\nUNTERSTÜTZTE SPRACHBEFEHLE:\n\n1. STARTEN & FORTSETZEN:\n• „Alexa, öffne Audio Shelf“\n• „Alexa, sage Audio Shelf mache weiter“ (setzt den zuletzt gehörten Titel oder Podcast fort)\n• „Alexa, frage Audio Shelf weiterhören“ / „fortsetzen“\n• „Alexa, frage Audio Shelf setze [Titel] fort“ / „höre [Titel] weiter“\n• „Alexa, frage Audio Shelf spiele [Titel]“\n\n2. PODCASTS:\n• „Alexa, frage Audio Shelf spiele den Podcast [Titel]“ (spielt die neueste bzw. angefangene Folge)\n• „Alexa, frage Audio Shelf spiele Folge [Nummer] von [Podcast-Titel]“ (z. B. „Folge 5 von Tech Talk“)\n• „Alexa, frage Audio Shelf spiele die neueste Folge von [Podcast-Titel]“\n• „Alexa, frage Audio Shelf spiele die erste Folge von [Podcast-Titel]“\n• „Alexa, frage Audio Shelf nächste Folge“ / „vorherige Folge“\n\n3. HÖRBUCH-KAPITEL:\n• „Alexa, frage Audio Shelf nächstes Kapitel“\n• „Alexa, frage Audio Shelf vorheriges Kapitel“\n\n4. SPULEN (ZEITBASIERT):\n• „Alexa, frage Audio Shelf springe 30 Sekunden zurück“\n• „Alexa, frage Audio Shelf spule 2 Minuten vor“\n\n5. SLEEP TIMER:\n• „Alexa, frage Audio Shelf stelle den Sleep Timer auf 30 Minuten“\n• „Alexa, frage Audio Shelf schalte in 15 Minuten aus“\n• „Alexa, frage Audio Shelf Sleep Timer abbrechen“\n\n6. ÜBERSICHT & BIBLIOTHEK:\n• „Alexa, frage Audio Shelf was höre ich gerade“ (zeigt angefangene Titel)\n• „Alexa, frage Audio Shelf was gibt es Neues“\n• „Alexa, frage Audio Shelf liste meine Bibliotheken“\n\n7. STANDARD-STEUERUNG:\n• „Alexa, Pause“ / „Alexa, Weiter“ / „Alexa, Stop“\n• Echo-Tasten (Vor/Zurück) springen bei Podcasts zur nächsten Folge und bei Hörbüchern zum nächsten Kapitel.",
           "smallIconUri": "https://raw.githubusercontent.com/elpatron68/audiobookshelf-alexa/main/skill-package/assets/images/icon_108.png",
           "largeIconUri": "https://raw.githubusercontent.com/elpatron68/audiobookshelf-alexa/main/skill-package/assets/images/icon_512.png",
           "examplePhrases": [
-            "öffne Audiobook Shelf",
-            "frage Audiobook Shelf spiele den Podcast Tech Talk",
-            "sage Audiobook Shelf mache weiter"
+            "öffne Audio Shelf",
+            "frage Audio Shelf spiele den Podcast Tech Talk",
+            "sage Audio Shelf mache weiter"
           ],
           "keywords": ["Hörbuch", "Podcast", "Podcasts", "Audiobookshelf", "Audiobook"]
         },
@@ -22,9 +22,9 @@
           "smallIconUri": "https://raw.githubusercontent.com/elpatron68/audiobookshelf-alexa/main/skill-package/assets/images/icon_108.png",
           "largeIconUri": "https://raw.githubusercontent.com/elpatron68/audiobookshelf-alexa/main/skill-package/assets/images/icon_512.png",
           "examplePhrases": [
-            "open Audiobook Shelf",
-            "ask Audiobook Shelf to resume",
-            "ask Audiobook Shelf to play Tech Talk"
+            "open Audio Shelf",
+            "ask Audio Shelf to resume",
+            "ask Audio Shelf to play Tech Talk"
           ],
           "keywords": ["Audiobook", "Audiobooks", "Podcast", "Podcasts", "Audiobookshelf"]
         }

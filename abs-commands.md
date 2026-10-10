@@ -6,13 +6,13 @@ Vollständige Übersicht aller unterstützten Sprachbefehle und Steuerungsoption
 
 ## 🇩🇪 Deutsch (de-DE)
 
-Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audiobook Shelf“** aufgerufen werden.
+Der Skill kann mit dem Rufnamen **„Audiobookshelf“** oder **„Audio Shelf“** aufgerufen werden.
 
 ### 1. Skill starten & Fortsetzen
 
 | Aktion | Sprachbefehle (Beispiele) |
 |---|---|
-| **Skill öffnen / Begrüßung** | • „Alexa, öffne Audiobookshelf“<br>• „Alexa, starte Audiobook Shelf“ |
+| **Skill öffnen / Begrüßung** | • „Alexa, öffne Audiobookshelf“<br>• „Alexa, starte Audio Shelf“ |
 | **Zuletzt Gehörtes fortsetzen**<br>*(Hörbuch oder Podcast dort weiterhören, wo du aufgehört hast)* | • „Alexa, sage Audiobookshelf mache weiter“<br>• „Alexa, frage Audiobookshelf weiterhören“<br>• „Alexa, frage Audiobookshelf fortsetzen“<br>• „Alexa, sage Audiobookshelf spiele weiter“<br>• „Alexa, frage Audiobookshelf wo ich aufgehört habe“ |
 | **Bestimmten Titel fortsetzen** | • „Alexa, frage Audiobookshelf mache mit *[Titel]* weiter“<br>• „Alexa, frage Audiobookshelf höre *[Titel]* weiter“<br>• „Alexa, frage Audiobookshelf setze *[Titel]* fort“<br>• „Alexa, frage Audiobookshelf setze meinen Podcast fort“ |
 
@@ -94,13 +94,13 @@ Für diese Befehle muss der Skill-Name nicht genannt werden:
 
 ## 🇺🇸 English (en-US)
 
-The skill responds to the invocation name **„Audiobookshelf“** or **„Audiobook Shelf“**.
+The skill responds to the invocation name **„Audiobookshelf“** or **„Audio Shelf“**.
 
 ### 1. Launch & Resuming
 
 | Action | Voice Commands (Examples) |
 |---|---|
-| **Open skill / Welcome** | • "Alexa, open Audiobookshelf"<br>• "Alexa, start Audiobook Shelf" |
+| **Open skill / Welcome** | • "Alexa, open Audiobookshelf"<br>• "Alexa, start Audio Shelf" |
 | **Resume last played**<br>*(Resumes whichever audiobook or podcast you listened to last)* | • "Alexa, ask Audiobookshelf to continue"<br>• "Alexa, ask Audiobookshelf to resume listening"<br>• "Alexa, ask Audiobookshelf to pick up where I left off"<br>• "Alexa, tell Audiobookshelf keep listening" |
 | **Resume specific title** | • "Alexa, ask Audiobookshelf to continue *[Title]*"<br>• "Alexa, ask Audiobookshelf to resume *[Title]*"<br>• "Alexa, ask Audiobookshelf to keep listening to *[Title]*" |
 
