@@ -70,7 +70,7 @@ test('handleHttpRequest POST /auth with missing fields returns 400', async () =>
     body: 'server_url=&api_key=',
   });
   assert.equal(res.statusCode, 400);
-  assert.match(res.body, /Bitte gib sowohl die Server-Adresse als auch deinen API-Key ein/);
+  assert.match(res.body, /Bitte gib die Server-Adresse sowie Benutzername und Passwort/);
 });
 
 test('handleHttpRequest POST /token exchanges valid authorization code', async () => {

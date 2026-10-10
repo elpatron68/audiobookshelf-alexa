@@ -43,32 +43,78 @@ function decryptCredentials(token) {
 
 /**
  * Validates connection against a remote Audiobookshelf server.
+ * Supports both API Key and Username/Password authentication.
  */
-async function verifyAbsConnection(baseUrl, apiKey) {
+async function verifyAbsConnection(baseUrl, credentials) {
   const cleanUrl = (baseUrl || '').trim().replace(/\/+$/, '');
   if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
     throw new Error('Die Server-URL muss mit https:// oder http:// beginnen.');
   }
 
-  const res = await fetch(`${cleanUrl}/api/me`, {
-    headers: {
-      Authorization: `Bearer ${apiKey.trim()}`,
-      Accept: 'application/json',
-    },
-  });
-
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      throw new Error('Ungültiger API-Key oder fehlende Berechtigung.');
-    }
-    throw new Error(`Server antwortete mit Fehler-Status: ${res.status}`);
+  let apiKey, username, password;
+  if (typeof credentials === 'string') {
+    apiKey = credentials.trim();
+  } else if (credentials && typeof credentials === 'object') {
+    apiKey = (credentials.apiKey || '').trim();
+    username = (credentials.username || '').trim();
+    password = credentials.password || '';
   }
 
-  const user = await res.json().catch(() => ({}));
-  return {
-    username: user.username || 'Audiobookshelf User',
-    userId: user.id || 'unknown',
-  };
+  // 1. If username and password provided, authenticate via POST /login
+  if (username && password) {
+    const res = await fetch(`${cleanUrl}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Ungültiger Benutzername oder falsches Passwort.');
+      }
+      throw new Error(`Server antwortete mit Fehler-Status: ${res.status}`);
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (!data.user?.token) {
+      throw new Error('Ungültige Antwort vom Server beim Login.');
+    }
+
+    return {
+      apiKey: data.user.token,
+      username: data.user.username || username,
+      userId: data.user.id || 'unknown',
+    };
+  }
+
+  // 2. If apiKey provided, verify via GET /api/me
+  if (apiKey) {
+    const res = await fetch(`${cleanUrl}/api/me`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Ungültiger API-Key oder fehlende Berechtigung.');
+      }
+      throw new Error(`Server antwortete mit Fehler-Status: ${res.status}`);
+    }
+
+    const user = await res.json().catch(() => ({}));
+    return {
+      apiKey,
+      username: user.username || 'Audiobookshelf User',
+      userId: user.id || 'unknown',
+    };
+  }
+
+  throw new Error('Bitte gib entweder Benutzername und Passwort oder einen API-Key ein.');
 }
 
 /**
@@ -232,10 +278,23 @@ function renderAuthPage({ redirectUri, state, clientId, responseType, errorMessa
       </div>
 
       <div class="form-group">
-        <label for="api_key">API-Schlüssel (API-Key)</label>
-        <input type="password" id="api_key" name="api_key" placeholder="Dein Audiobookshelf API-Key..." required value="${sanitize(values.apiKey)}">
-        <div class="hint">Erstelle einen API-Key im Audiobookshelf Web-Interface unter: <em>Einstellungen &rarr; Benutzer &rarr; API-Schlüssel</em>.</div>
+        <label for="username">Benutzername</label>
+        <input type="text" id="username" name="username" placeholder="Dein Benutzername..." value="${sanitize(values.username)}" autocomplete="username">
       </div>
+
+      <div class="form-group">
+        <label for="password">Passwort</label>
+        <input type="password" id="password" name="password" placeholder="Dein Passwort..." autocomplete="current-password">
+      </div>
+
+      <details style="margin: 16px 0; font-size: 13px; color: var(--text-muted);">
+        <summary style="cursor: pointer; color: var(--accent);">Oder mit API-Key verbinden (erweitert)</summary>
+        <div class="form-group" style="margin-top: 12px;">
+          <label for="api_key">API-Schlüssel (API-Key)</label>
+          <input type="password" id="api_key" name="api_key" placeholder="Dein Audiobookshelf API-Key..." value="${sanitize(values.apiKey)}">
+          <div class="hint">Alternativ zu Benutzername & Passwort: Erstelle einen API-Key in ABS unter: <em>Einstellungen &rarr; Benutzer &rarr; API-Schlüssel</em>.</div>
+        </div>
+      </details>
 
       <button type="submit">Mit Alexa verbinden</button>
     </form>
@@ -307,26 +366,28 @@ async function handleHttpRequest(event) {
     }
     const params = new URLSearchParams(body);
     const serverUrl = (params.get('server_url') || '').trim();
+    const username = (params.get('username') || '').trim();
+    const password = params.get('password') || '';
     const apiKey = (params.get('api_key') || '').trim();
     const redirectUri = params.get('redirect_uri') || query.redirect_uri || '';
     const state = params.get('state') || query.state || '';
     const clientId = params.get('client_id') || query.client_id || '';
     const responseType = params.get('response_type') || query.response_type || 'code';
 
-    if (!serverUrl || !apiKey) {
+    if (!serverUrl || (!apiKey && (!username || !password))) {
       const html = renderAuthPage({
         redirectUri, state, clientId, responseType,
-        errorMessage: 'Bitte gib sowohl die Server-Adresse als auch deinen API-Key ein.',
-        values: { serverUrl, apiKey },
+        errorMessage: 'Bitte gib die Server-Adresse sowie Benutzername und Passwort (oder deinen API-Key) ein.',
+        values: { serverUrl, username, apiKey },
       });
       return { statusCode: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' }, body: html };
     }
 
     try {
-      const userInfo = await verifyAbsConnection(serverUrl, apiKey);
+      const userInfo = await verifyAbsConnection(serverUrl, { apiKey, username, password });
       const token = encryptCredentials({
         baseUrl: serverUrl.replace(/\/+$/, ''),
-        apiKey,
+        apiKey: userInfo.apiKey,
         username: userInfo.username,
         userId: userInfo.userId,
       });

@@ -30,7 +30,7 @@
         }
       },
       "isAvailableWorldwide": true,
-      "testingInstructions": "Personal-use skill.",
+      "testingInstructions": "To test this skill, please link an Audiobookshelf account when prompted in the Alexa app:\n1. Server URL: https://abs-alexa-demo.duckdns.org\n2. Username: demo\n3. Password: AmazonReview2026!\n\nAfter linking, test playback with:\n- German: 'Alexa, öffne mein Bücherregal', 'Alexa, frage mein Bücherregal spiele den Podcast Tech Talk', 'Alexa, frage mein Bücherregal mache weiter'\n- English: 'Alexa, open my bookshelf', 'Alexa, ask my bookshelf to play Tech Talk'\n- AudioPlayer controls: 'Alexa, Pause', 'Alexa, Weiter', 'Alexa, nächstes Kapitel'",
       "category": "STREAMING_SERVICE"
     },
     "privacyAndCompliance": {
