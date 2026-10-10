@@ -85,7 +85,7 @@ jobs:
   deploy-skill:
     name: Deploy Alexa Skill
     needs: test
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && secrets.ASK_REFRESH_TOKEN != ''
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     env:
       ASK_REFRESH_TOKEN: ${{ secrets.ASK_REFRESH_TOKEN }}
@@ -104,6 +104,10 @@ jobs:
 
       - name: Deploy interaction models & manifest
         run: |
+          if [ -z "$ASK_REFRESH_TOKEN" ] || [ -z "${{ secrets.ALEXA_SKILL_ID }}" ]; then
+            echo "ASK_REFRESH_TOKEN or ALEXA_SKILL_ID not set. Skipping Alexa Skill deployment."
+            exit 0
+          fi
           SKILL_ID="${{ secrets.ALEXA_SKILL_ID }}"
           echo "Deploying to Alexa Skill: $SKILL_ID"
 
