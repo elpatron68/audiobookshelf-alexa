@@ -515,3 +515,20 @@ test('Unlinked user request prompts for account linking with LinkAccount card', 
   }
 });
 
+test('Linked user request works in production mode with accessToken', async () => {
+  const origNodeEnv = process.env.NODE_ENV;
+  try {
+    process.env.NODE_ENV = 'production';
+    delete process.env.ALLOW_ENV_FALLBACK;
+    const { encryptCredentials } = require('../lib/auth');
+    const token = encryptCredentials({ baseUrl: 'https://abs.test.com', apiKey: 'valid-api-key' });
+    const env = launch();
+    env.context.System.user.accessToken = token;
+    const res = await invoke(handler, env);
+    assert.match(speech(res), /Willkommen bei Audiobookshelf/);
+    assert.equal(res.response.card, undefined);
+  } finally {
+    process.env.NODE_ENV = origNodeEnv;
+  }
+});
+

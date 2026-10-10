@@ -9,7 +9,18 @@
 // for stream URLs.
 
 class AbsClient {
-  constructor({ baseUrl, apiKey, fetchImpl } = {}) {
+  constructor(optsOrBaseUrl = {}, maybeApiKey) {
+    let baseUrl;
+    let apiKey;
+    let fetchImpl;
+    if (typeof optsOrBaseUrl === 'string') {
+      baseUrl = optsOrBaseUrl;
+      apiKey = maybeApiKey;
+    } else if (optsOrBaseUrl && typeof optsOrBaseUrl === 'object') {
+      baseUrl = optsOrBaseUrl.baseUrl;
+      apiKey = optsOrBaseUrl.apiKey;
+      fetchImpl = optsOrBaseUrl.fetchImpl;
+    }
     if (!baseUrl) throw new Error('AbsClient: baseUrl is required');
     if (!apiKey) throw new Error('AbsClient: apiKey is required');
     this.baseUrl = baseUrl.replace(/\/+$/, '');

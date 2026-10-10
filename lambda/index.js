@@ -34,7 +34,7 @@ function getClient(handlerInput) {
     if (token) {
       const creds = decryptCredentials(token);
       if (creds && creds.baseUrl && creds.apiKey) {
-        return new AbsClient(creds.baseUrl, creds.apiKey);
+        return new AbsClient({ baseUrl: creds.baseUrl, apiKey: creds.apiKey });
       }
     }
 
