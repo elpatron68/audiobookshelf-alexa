@@ -304,6 +304,39 @@ try {
     Remove-Item $tempEnFile -Force -ErrorAction SilentlyContinue
 }
 
+# 6b. Deploy Account Linking for Dev Skill
+if ($funcUrl) {
+    Write-Host "`n[*] Configuring Account Linking for Dev Skill..." -ForegroundColor Cyan
+    $baseUrlClean = $funcUrl.TrimEnd('/')
+    $devAccountLinking = @{
+        accountLinkingRequest = @{
+            type = "AUTH_CODE"
+            authorizationUrl = "$baseUrlClean/auth"
+            accessTokenUrl = "$baseUrlClean/token"
+            clientId = "audiobookshelf-alexa"
+            clientSecret = "audiobookshelf-secret-2026"
+            accessTokenScheme = "REQUEST_BODY_CREDENTIALS"
+            defaultTokenExpirationInSeconds = 315360000
+            skipOnEnablement = $true
+            domains = @(
+                ([System.Uri]$baseUrlClean).Host,
+                "raw.githubusercontent.com"
+            )
+            scopes = @()
+        }
+    }
+    $tempAlFile = [System.IO.Path]::GetTempFileName()
+    $devAccountLinking | ConvertTo-Json -Depth 10 | Set-Content -Path $tempAlFile -Encoding utf8
+    try {
+        & $askCmd smapi update-account-linking-info -s $devSkillId -g development --account-linking-request "file:$tempAlFile" | Out-Null
+        Write-Host "--> Account Linking successfully configured (Function URL: $baseUrlClean)!" -ForegroundColor Green
+    } catch {
+        Write-Warning "Failed to update Account Linking: $_"
+    } finally {
+        Remove-Item $tempAlFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
 # 7. Wait for Model Build & Enable Testing
 Write-Host "`n[7/7] Waiting for interaction model build..." -ForegroundColor Yellow
 for ($i = 0; $i -lt 15; $i++) {
