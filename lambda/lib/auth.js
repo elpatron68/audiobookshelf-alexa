@@ -473,6 +473,85 @@ async function handleHttpRequest(event) {
     };
   }
 
+  // 7. POST /webhook or POST /notify (Audiobookshelf / Apprise Proactive Events Webhook)
+  if (method === 'POST' && (rawPath === '/webhook' || rawPath === '/notify')) {
+    // Optional webhook secret verification
+    const expectedSecret = process.env.WEBHOOK_SECRET;
+    if (expectedSecret) {
+      const authHeader = event.headers?.['authorization'] || event.headers?.['Authorization'] || '';
+      const secretHeader = event.headers?.['x-webhook-secret'] || event.headers?.['X-Webhook-Secret'] || '';
+      const secretQuery = query.secret || '';
+      const tokenMatch = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader;
+
+      if (secretHeader !== expectedSecret && secretQuery !== expectedSecret && tokenMatch !== expectedSecret) {
+        return {
+          statusCode: 401,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: 'unauthorized', message: 'Invalid or missing webhook secret' }),
+        };
+      }
+    }
+
+    let body = event.body || '';
+    if (event.isBase64Encoded) {
+      body = Buffer.from(body, 'base64').toString('utf8');
+    }
+
+    const { parseWebhookPayload, buildMediaAvailablePayload, sendProactiveEvent } = require('./proactiveEvents');
+    const parsed = parseWebhookPayload(body);
+
+    if (!parsed || !parsed.title) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'bad_request', message: 'Could not extract valid media item from webhook payload' }),
+      };
+    }
+
+    if (!process.env.ALEXA_CLIENT_ID || !process.env.ALEXA_CLIENT_SECRET) {
+      return {
+        statusCode: 503,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: 'service_unavailable',
+          message: 'ALEXA_CLIENT_ID and ALEXA_CLIENT_SECRET are not configured in Lambda environment variables.',
+        }),
+      };
+    }
+
+    try {
+      const eventPayload = buildMediaAvailablePayload({
+        title: parsed.title,
+        author: parsed.author,
+        contentType: parsed.contentType,
+        userId: query.user_id || query.userId,
+      });
+
+      const result = await sendProactiveEvent({ payload: eventPayload });
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'success',
+          event: 'AMAZON.MediaContent.Available',
+          referenceId: result.referenceId,
+          content: {
+            title: parsed.title,
+            author: parsed.author,
+            contentType: parsed.contentType,
+          },
+        }),
+      };
+    } catch (err) {
+      console.error('Failed to send proactive event:', err.message);
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'internal_error', message: err.message }),
+      };
+    }
+  }
+
   return {
     statusCode: 404,
     headers: { 'Content-Type': 'text/plain' },
